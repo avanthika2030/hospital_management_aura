@@ -62,6 +62,8 @@ If you encounter any issues:
 3. Verify that the database file exists and is not corrupted
 4. For email issues, confirm your app password is correctly configured
 
+## Required
+Please make sure to add the client_secret.json file and the adjoining gmail_token.json file with GCP to ensure proper working of the Gmail functionalities.
 ## License
 
 This project is proprietary and confidential.
