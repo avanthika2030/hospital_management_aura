@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Reviews - {{ doctor.name }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1976D2;
+            --primary-light: #42A5F5;
+            --primary-dark: #0D47A1;
+            --accent: #FF5722;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --danger: #F44336;
+            --text-light: #FFFFFF;
+            --text-dark: #333333;
+            --bg-light: #F5F5F5;
+            --bg-dark: #E0E0E0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--primary-dark);
+        }
+
+        .logo img {
+            height: 40px;
+            width: 40px;
+            border-radius: 50%;
+        }
+
+        .logo span {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .doctor-info {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .doctor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .doctor-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .doctor-specialty {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .doctor-rating {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            color: #FFD700;
+            font-size: 20px;
+        }
+
+        .rating-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .rating-count {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .reviews-container {
+            margin-top: 20px;
+        }
+
+        .review-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .reviewer-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .review-date {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .review-rating {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 10px;
+        }
+
+        .review-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="/reception/dashboard" class="logo">
+                <img src="/static/images/logo.jpg" alt="Logo">
+                <span>AURA</span>
+            </a>
+            <a href="/reception/doctors" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Doctors
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="doctor-info">
+            <div class="doctor-header">
+                <div>
+                    <h1 class="doctor-name">Dr. {{ doctor.name }}</h1>
+                    <p class="doctor-specialty">{{ doctor.specialty }}</p>
+                </div>
+                <div class="doctor-rating">
+                    <div class="rating-stars">
+                        {% for i in range(5) %}
+                            {% if i < avg_rating|int %}
+                                <i class="fas fa-star star"></i>
+                            {% elif i < avg_rating and i == avg_rating|int %}
+                                <i class="fas fa-star-half-alt star"></i>
+                            {% else %}
+                                <i class="far fa-star star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="rating-value">{{ avg_rating }}</span>
+                    <span class="rating-count">({{ reviews|length }} reviews)</span>
+                </div>
+            </div>
+            <p>{{ doctor.description }}</p>
+            <p><strong>Available Days:</strong> {{ doctor.available_days }}</p>
+        </div>
+
+        <h2>Patient Reviews</h2>
+        
+        <div class="reviews-container">
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="review-card">
+                        <div class="review-header">
+                            <span class="reviewer-name">{{ review.user.name }}</span>
+                            <span class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        <div class="review-rating">
+                            {% for i in range(5) %}
+                                {% if i < review.rating %}
+                                    <i class="fas fa-star star"></i>
+                                {% else %}
+                                    <i class="far fa-star star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% if review.review_text %}
+                            <p class="review-text">{{ review.review_text }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-reviews">
+                    <p>No reviews yet for this doctor.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

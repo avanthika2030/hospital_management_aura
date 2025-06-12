@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Reception Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Copy the same CSS from reception_appointments.html for consistency */
+        :root {
+            --primary: #0ea5e9;
+            --primary-light: #e0f2fe;
+            --primary-dark: #0284c7;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --white: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark);
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: var(--white);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar-header img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .sidebar-header p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item i {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            margin-left: 15px;
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        .logout-btn:hover {
+            color: var(--danger);
+        }
+
+        /* Settings Specific Styles */
+        .settings-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+
+        .settings-sidebar {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            padding: 20px;
+        }
+
+        .settings-menu {
+            list-style: none;
+        }
+
+        .settings-menu-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .settings-menu-item i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .settings-menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .settings-menu-item:hover:not(.active) {
+            background-color: #f8fafc;
+        }
+
+        .settings-content {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            padding: 30px;
+        }
+
+        .settings-section {
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .settings-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .form-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .form-check-input {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo">
+                <h3>AURA Hospital</h3>
+                <p>Reception Portal</p>
+            </div>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('reception_dashboard') }}" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('reception_appointments') }}" class="menu-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="{{ url_for('reception_patients') }}" class="menu-item">
+                    <i class="fas fa-user-injured"></i>
+                    <span>Patients</span>
+                </a>
+                <a href="{{ url_for('reception_doctors') }}" class="menu-item">
+                    <i class="fas fa-user-md"></i>
+                    <span>Doctors</span>
+                </a>
+                <a href="{{ url_for('reception_chat') }}" class="menu-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Patient Chat</span>
+                </a>
+                <a href="{{ url_for('reception_reports') }}" class="menu-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="{{ url_for('reception_settings') }}" class="menu-item active">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="page-title">Settings</h1>
+                <div class="user-info">
+                    <img src="https://ui-avatars.com/api/?name={{ session.get('reception_username', 'User') }}&background=0D8ABC&color=fff" alt="User">
+                    <span class="user-name">{{ session.get('reception_username', 'Reception') }}</span>
+                    <a href="{{ url_for('reception_logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="settings-container">
+                <!-- Settings Sidebar -->
+                <div class="settings-sidebar">
+                    <ul class="settings-menu">
+                        <li class="settings-menu-item active" data-target="profile">
+                            <i class="fas fa-user"></i> Profile Settings
+                        </li>
+                        <li class="settings-menu-item" data-target="notifications">
+                            <i class="fas fa-bell"></i> Notifications
+                        </li>
+                        <li class="settings-menu-item" data-target="appearance">
+                            <i class="fas fa-paint-brush"></i> Appearance
+                        </li>
+                        <li class="settings-menu-item" data-target="security">
+                            <i class="fas fa-lock"></i> Security
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Settings Content -->
+                <div class="settings-content">
+                    <!-- Profile Settings -->
+                    <div class="settings-section active" id="profile">
+                        <h2 class="settings-title">Profile Settings</h2>
+                        <form>
+                            <div class="form-group">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <input type="text" id="fullName" class="form-control" value="Reception Staff">
+                            </div>
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" id="email" class="form-control" value="reception@aurahospital.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" id="phone" class="form-control" value="+91 9876543210">
+                            </div>
+                            <div class="form-group">
+                                <label for="bio" class="form-label">Bio</label>
+                                <textarea id="bio" class="form-control" rows="4">Reception staff at AURA Dental Hospital with 5 years of experience.</textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Notifications Settings -->
+                    <div class="settings-section" id="notifications">
+                        <h2 class="settings-title">Notification Settings</h2>
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" id="emailNotif" class="form-check-input" checked>
+                                <label for="emailNotif">Email Notifications</label>
+                            </div>
+                            <span class="form-text">Receive email notifications for new appointments and updates.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" id="browserNotif" class="form-check-input" checked>
+                                <label for="browserNotif">Browser Notifications</label>
+                            </div>
+                            <span class="form-text">Receive notifications in your browser when you're online.</span>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary">Save Preferences</button>
+                        </div>
+                    </div>
+
+                    <!-- Appearance Settings -->
+                    <div class="settings-section" id="appearance">
+                        <h2 class="settings-title">Appearance Settings</h2>
+                        <div class="form-group">
+                            <label class="form-label">Theme</label>
+                            <div class="form-check">
+                                <input type="radio" id="lightTheme" name="theme" class="form-check-input" checked>
+                                <label for="lightTheme">Light Theme</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" id="darkTheme" name="theme" class="form-check-input">
+                                <label for="darkTheme">Dark Theme</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="fontSize" class="form-label">Font Size</label>
+                            <select id="fontSize" class="form-control">
+                                <option>Small</option>
+                                <option selected>Medium</option>
+                                <option>Large</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary">Apply Changes</button>
+                            <button type="button" class="btn btn-outline">Reset to Default</button>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="settings-section" id="security">
+                        <h2 class="settings-title">Security Settings</h2>
+                        <div class="form-group">
+                            <label for="currentPassword" class="form-label">Current Password</label>
+                            <input type="password" id="currentPassword" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input type="password" id="newPassword" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" class="form-control">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary">Change Password</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching for settings
+        document.querySelectorAll('.settings-menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Update active menu item
+                document.querySelectorAll('.settings-menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                // Show corresponding section
+                const targetId = this.getAttribute('data-target');
+                document.querySelectorAll('.settings-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

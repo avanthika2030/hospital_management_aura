@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Doctors - AURA Hospital</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reception_common.css') }}">
+    <style>
+        /* Doctor cards */
+        .doctors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .doctor-card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px var(--shadow-md);
+        }
+
+        .doctor-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .doctor-avatar {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .doctor-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .doctor-specialty {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .doctor-info {
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .info-item i {
+            width: 20px;
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        .star-rating {
+            display: flex;
+            align-items: center;
+        }
+
+        .star-rating i {
+            color: #FFD700;
+            width: auto;
+            margin-right: 2px;
+        }
+
+        .rating-text {
+            margin-left: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .doctor-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .delete-btn:hover {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .view-btn {
+            background: #e0f2fe;
+            color: var(--primary);
+        }
+
+        .view-btn:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal, .confirm-modal {
+            background: var(--white);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--dark);
+        }
+
+        /* Confirmation modal styles */
+        .confirm-modal {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .confirm-icon {
+            font-size: 48px;
+            color: var(--warning);
+            margin-bottom: 15px;
+        }
+
+        .confirm-message {
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .confirm-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .confirm-options {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: #212529;
+        }
+
+        .btn-info {
+            background-color: var(--info);
+            color: var(--white);
+        }
+
+        /* Add styles for selected option */
+        .btn.selected {
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* Checkbox styling */
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            transition: all 0.2s ease;
+        }
+
+        .day-checkbox:hover {
+            background-color: #e9ecef;
+        }
+
+        .day-checkbox input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .day-checkbox label {
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 0;
+            flex-grow: 1;
+        }
+
+        .day-checkbox input[type="checkbox"]:checked + label {
+            color: var(--primary);
+        }
+
+        /* Flash messages */
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Page header styles */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        /* Add button styles */
+        .add-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .add-btn i {
+            font-size: 16px;
+        }
+
+        .add-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .add-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo" class="logo-img">
+            <h3>AURA Hospital</h3>
+            <p>Reception Portal</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('reception_dashboard') }}" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('reception_appointments') }}" class="menu-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Appointments</span>
+            </a>
+            <a href="{{ url_for('reception_patients') }}" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Patients</span>
+            </a>
+            <a href="{{ url_for('reception_doctors') }}" class="menu-item active">
+                <i class="fas fa-user-md"></i>
+                <span>Doctors</span>
+            </a>
+            <a href="{{ url_for('reception_chat') }}" class="menu-item">
+                <i class="fas fa-comments"></i>
+                <span>Patient Chat</span>
+            </a>
+            <a href="{{ url_for('reception_gallery') }}" class="menu-item">
+                <i class="fas fa-images"></i>
+                <span>Gallery</span>
+            </a>
+            <a href="{{ url_for('consultation_history') }}" class="menu-item">
+                <i class="fas fa-history"></i>
+                <span>Consultation History</span>
+            </a>
+            <a href="{{ url_for('reception_logout') }}" class="menu-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="page-header">
+            <h1 class="page-title">Manage Doctors</h1>
+            <button class="add-btn" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add New Doctor
+            </button>
+        </div>
+
+        <!-- Doctors Grid -->
+        <div class="doctors-grid">
+            {% for doctor in doctors %}
+            <div class="doctor-card">
+                <div class="doctor-header">
+                    <div class="doctor-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div>
+                        <div class="doctor-name">{{ doctor.name }}</div>
+                        <div class="doctor-specialty">{{ doctor.specialty }}</div>
+                    </div>
+                </div>
+                <div class="doctor-info">
+                    {% if doctor.description %}
+                    <div class="info-item">
+                        <i class="fas fa-info-circle"></i>
+                        <span>{{ doctor.description }}</span>
+                    </div>
+                    {% endif %}
+                    {% if doctor.available_days %}
+                    <div class="info-item">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>Available: {{ doctor.available_days }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="info-item">
+                        <div class="star-rating">
+                            {% for i in range(5) %}
+                                {% if i < doctor.avg_rating|int %}
+                                    <i class="fas fa-star"></i>
+                                {% elif i < doctor.avg_rating and i == doctor.avg_rating|int %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="rating-text">{{ doctor.avg_rating|round(1) }} ({{ doctor.review_count }} reviews)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="doctor-actions">
+                    <a href="{{ url_for('doctor_reviews', doctor_id=doctor.id) }}" class="action-btn view-btn">
+                        <i class="fas fa-eye"></i> View Reviews
+                    </a>
+                    <button class="action-btn delete-btn" onclick="confirmDelete({{ doctor.id }}, '{{ doctor.name }}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px; background: white; border-radius: 10px; box-shadow: 0 2px 10px var(--shadow);">
+                <i class="fas fa-user-md" style="font-size: 50px; color: #e0e0e0; margin-bottom: 20px;"></i>
+                <h3 style="margin-bottom: 10px; color: #333;">No Doctors Found</h3>
+                <p style="color: #666; margin-bottom: 20px;">Add your first doctor to get started</p>
+                <button class="add-btn" style="margin: 0 auto;" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add Doctor
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Add Doctor Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Doctor</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form action="{{ url_for('add_doctor') }}" method="post" id="addDoctorForm" onsubmit="return validateDoctorForm()">
+                <div class="form-group">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="specialty" class="form-label">Specialty</label>
+                    <input type="text" id="specialty" name="specialty" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description" name="description" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Available Days</label>
+                    <div class="days-checkbox-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <div class="day-checkbox">
+                            <input type="checkbox" id="day-sunday" name="days[]" value="Sunday">
+                            <label for="day-sunday">Sunday</label>
+                        </div>
+                        <div class="day-checkbox">
+                            <input type="checkbox" id="day-monday" name="days[]" value="Monday">
+                            <label for="day-monday">Monday</label>
+                        </div>
+                        <div class="day-checkbox">
+                            <input type="checkbox" id="day-tuesday" name="days[]" value="Tuesday">
+                            <label for="day-tuesday">Tuesday</label>
+                        </div>
+                        <div class="day-checkbox">
+                            <input type="checkbox" id="day-wednesday" name="days[]" value="Wednesday">
+                            <label for="day-wednesday">Wednesday</label>
+                        </div>
+                        <div class="day-checkbox">
+                            <input type="checkbox" id="day-thursday" name="days[]" value="Thursday">
+                            <label for="day-thursday">Thursday</label>
+                        </div>
+                        <div class="day-checkbox">
+                            <input type="checkbox" id="day-friday" name="days[]" value="Friday">
+                            <label for="day-friday">Friday</label>
+                        </div>
+                        <div class="day-checkbox">
+                            <input type="checkbox" id="day-saturday" name="days[]" value="Saturday">
+                            <label for="day-saturday">Saturday</label>
+                        </div>
+                    </div>
+                    <div id="days-error" class="error-message" style="color: #dc3545; font-size: 14px; margin-top: 8px; display: none;">
+                        <i class="fas fa-exclamation-circle"></i> Please select at least one available day.
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Doctor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="confirm-modal">
+            <div class="confirm-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="confirm-message" id="confirmMessage"></div>
+
+            <form action="{{ url_for('delete_doctor') }}" method="post" id="deleteForm">
+                <input type="hidden" name="doctor_id" id="doctorIdToDelete">
+                <input type="hidden" name="action" id="deleteAction" value="cancel">
+
+                <div class="confirm-options">
+                    <p><strong>How would you like to handle this doctor's appointments?</strong></p>
+                    <div class="option-buttons">
+                        <button type="button" class="btn btn-info" onclick="showReassignOptions()">
+                            Reassign to Another Doctor
+                        </button>
+                    </div>
+                </div>
+
+                <div id="reassignOptions" style="display: none; margin: 15px 0;">
+                    <label for="new_doctor_id" class="form-label">Select Doctor to Reassign Appointments:</label>
+                    <select name="new_doctor_id" id="new_doctor_id" class="form-control">
+                        {% for doc in doctors %}
+                            <option value="{{ doc.id }}" id="doctor-option-{{ doc.id }}">{{ doc.name }} ({{ doc.specialty }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="confirm-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Close</button>
+                    <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Proceed with Deletion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Function to open the add doctor modal
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        // Function to close the add doctor modal
+        function closeModal() {
+            document.getElementById('addModal').classList.remove('active');
+        }
+
+        // Function to validate the doctor form
+        function validateDoctorForm() {
+            // Check if at least one day is selected
+            const checkboxes = document.querySelectorAll('input[name="days[]"]:checked');
+            const errorElement = document.getElementById('days-error');
+
+            if (checkboxes.length === 0) {
+                // Show error message
+                errorElement.style.display = 'block';
+                // Scroll to the error message
+                errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            } else {
+                // Hide error message if previously shown
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+
+        // Add event listeners to checkboxes to hide error when any is checked
+        document.addEventListener('DOMContentLoaded', function() {
+            const dayCheckboxes = document.querySelectorAll('input[name="days[]"]');
+            dayCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // If any checkbox is checked, hide the error message
+                    if (document.querySelectorAll('input[name="days[]"]:checked').length > 0) {
+                        document.getElementById('days-error').style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Function to open the delete confirmation modal
+        function confirmDelete(doctorId, doctorName) {
+            document.getElementById('doctorIdToDelete').value = doctorId;
+            document.getElementById('confirmMessage').innerHTML = `
+                <p>Are you sure you want to delete Dr. ${doctorName}?</p>
+                <p style="color: #f44336; margin-top: 10px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    This action cannot be undone.
+                </p>
+            `;
+
+            // Hide the doctor being deleted from the reassign dropdown
+            const optionToHide = document.getElementById(`doctor-option-${doctorId}`);
+            if (optionToHide) {
+                optionToHide.style.display = 'none';
+            }
+
+            // Set action to reassign by default
+            document.getElementById('deleteAction').value = 'reassign';
+            document.getElementById('reassignOptions').style.display = 'block';
+
+            // Show the modal
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        // Function to close the delete confirmation modal
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+
+        // Function to set the delete action
+        function setDeleteAction(action) {
+            document.getElementById('deleteAction').value = action;
+
+            // Highlight the selected button
+            const buttons = document.querySelectorAll('.option-buttons .btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+
+            if (action === 'cancel') {
+                document.querySelector('.btn-warning').classList.add('selected');
+                document.getElementById('reassignOptions').style.display = 'none';
+            }
+        }
+
+        // Function to show reassign options
+        function showReassignOptions() {
+            document.getElementById('deleteAction').value = 'reassign';
+
+            // Highlight the selected button
+            const buttons = document.querySelectorAll('.option-buttons .btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            document.querySelector('.btn-info').classList.add('selected');
+
+            // Show the reassign options
+            document.getElementById('reassignOptions').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

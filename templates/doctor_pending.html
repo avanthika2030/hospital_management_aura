@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pending Appointment Requests</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: url('static/images/bg.jpg') no-repeat center center/cover;
+      background-color: #e3f2fd;
+      padding-bottom: 40px;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .nav-center {
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      width: 220px;
+      height: 60px;
+      margin: 6px 0;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      background: rgba(33, 150, 243, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(33, 150, 243, 0.3);
+      backdrop-filter: blur(12px);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-menu button:hover {
+      transform: scale(1.05);
+    }
+
+    .page-title {
+      text-align: center;
+      margin-top: 30px;
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .requests {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .request-card {
+      width: 90%;
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 123, 255, 0.2);
+      padding: 20px;
+      color: white;
+      margin: 12px 0;
+    }
+
+    .patient-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #0d47a1;
+      margin-bottom: 8px;
+    }
+
+    .request-date {
+      font-size: 16px;
+      color: #bbdefb;
+      margin-bottom: 8px;
+    }
+
+    .request-notes {
+      font-size: 14px;
+      color: white;
+      margin-bottom: 15px;
+      background: rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+    }
+
+    .time-inputs {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .time-select {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .duration-select {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .accept-btn {
+      background-color: #4caf50;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .accept-btn:hover {
+      background-color: #388e3c;
+    }
+
+    .reject-btn {
+      background-color: #f44336;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .reject-btn:hover {
+      background-color: #d32f2f;
+    }
+
+    .no-requests {
+      margin-top: 60px;
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      background: rgba(0,0,0,0.2);
+      padding: 20px 30px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Pending Appointment Requests</div>
+    <div class="nav-right">
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='/doctor/dashboard'">Dashboard</button>
+      <button onclick="window.location.href='/doctor/appointments'">All Appointments</button>
+      <button onclick="window.location.href='/doctor/pending'">Pending Requests</button>
+      <button onclick="window.location.href='/doctor/profile'">Profile</button>
+      <button onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </nav>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+  </script>
+
+  <div class="requests">
+    {% if pending_appointments %}
+      {% for appointment in pending_appointments %}
+        <div class="request-card">
+          <div class="patient-name">{{ appointment.user.name }}</div>
+          <div class="request-date">Requested for: {{ appointment.appointment_date.strftime('%B %d, %Y') }}</div>
+          {% if appointment.notes %}
+            {% set user_notes = appointment.notes.split('[SYSTEM]')[0] %}
+            {% if user_notes.strip() %}
+              <div class="request-notes">{{ user_notes }}</div>
+            {% endif %}
+          {% endif %}
+
+          <div class="action-row">
+            <div class="time-inputs">
+              <select class="time-select" id="time-{{ appointment.id }}">
+                <option value="">Select Time</option>
+                <option value="09:00 AM">09:00 AM</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="11:00 AM">11:00 AM</option>
+                <option value="12:00 PM">12:00 PM</option>
+                <option value="01:00 PM">01:00 PM</option>
+                <option value="02:00 PM">02:00 PM</option>
+                <option value="03:00 PM">03:00 PM</option>
+                <option value="04:00 PM">04:00 PM</option>
+                <option value="05:00 PM">05:00 PM</option>
+              </select>
+
+              <select class="duration-select" id="duration-{{ appointment.id }}">
+                <option value="30">30 min</option>
+                <option value="45">45 min</option>
+                <option value="60">60 min</option>
+                <option value="90">90 min</option>
+              </select>
+            </div>
+
+            <div class="action-buttons">
+              <button class="accept-btn" onclick="acceptAppointment({{ appointment.id }})">Accept</button>
+              <button class="reject-btn" onclick="rejectAppointment({{ appointment.id }})">Reject</button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-requests">No pending appointment requests.</div>
+    {% endif %}
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    function acceptAppointment(appointmentId) {
+      const timeSelect = document.getElementById(`time-${appointmentId}`);
+      const durationSelect = document.getElementById(`duration-${appointmentId}`);
+
+      const selectedTime = timeSelect.value;
+      const selectedDuration = durationSelect.value;
+
+      if (!selectedTime) {
+        alert('Please select a time for the appointment');
+        return;
+      }
+
+      fetch('/api/doctor/accept_appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          time: selectedTime,
+          duration: selectedDuration
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Appointment accepted successfully!');
+          window.location.reload();
+        } else {
+          alert(data.message || 'Failed to accept appointment. Please try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      });
+    }
+
+    function rejectAppointment(appointmentId) {
+      if (confirm('Are you sure you want to reject this appointment request?')) {
+        fetch('/api/doctor/reject_appointment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            appointment_id: appointmentId
+          }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Appointment rejected successfully!');
+            window.location.reload();
+          } else {
+            alert(data.message || 'Failed to reject appointment. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred. Please try again.');
+        });
+      }
+    }
+  </script>
+
+</body>
+</html>

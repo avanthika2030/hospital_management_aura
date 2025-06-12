@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Gallery - AURA Reception</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/reception_common.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .gallery-container {
+      padding: 20px;
+    }
+
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .gallery-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .gallery-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+
+    .gallery-tab {
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .gallery-tab.active {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .gallery-tab:not(.active) {
+      background-color: #f8f9fc;
+      color: #5a5c69;
+    }
+
+    .gallery-tab:not(.active):hover {
+      background-color: #eaecf4;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .gallery-item {
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .gallery-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-info {
+      padding: 15px;
+    }
+
+    .gallery-item-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .gallery-desc {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .gallery-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #888;
+    }
+
+    .gallery-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .gallery-btn {
+      padding: 8px 15px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .approve-btn {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .approve-btn:hover {
+      background-color: #169b6b;
+      transform: translateY(-2px);
+    }
+
+    .reject-btn {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .reject-btn:hover {
+      background-color: #c23b2c;
+      transform: translateY(-2px);
+    }
+
+    .delete-btn {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .delete-btn:hover {
+      background-color: #d32f2f;
+      transform: translateY(-2px);
+    }
+
+    .pending-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: var(--warning);
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 10;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      overflow: auto;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background-color: white;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 100%;
+      padding: 30px;
+      position: relative;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #888;
+      transition: color 0.2s ease;
+    }
+
+    .close-modal:hover {
+      color: var(--danger);
+    }
+
+    .modal-title {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: #888;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #ddd;
+    }
+
+    .empty-state p {
+      font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+    }
+
+    @media (max-width: 576px) {
+      .gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo">
+        <h3>AURA Hospital</h3>
+        <p>Reception Portal</p>
+      </div>
+      <div class="sidebar-menu">
+        <a href="{{ url_for('reception_dashboard') }}" class="menu-item">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('reception_appointments') }}" class="menu-item">
+          <i class="fas fa-calendar-check"></i>
+          <span>Appointments</span>
+        </a>
+        <a href="{{ url_for('reception_patients') }}" class="menu-item">
+          <i class="fas fa-users"></i>
+          <span>Patients</span>
+        </a>
+        <a href="{{ url_for('reception_doctors') }}" class="menu-item">
+          <i class="fas fa-user-md"></i>
+          <span>Doctors</span>
+        </a>
+        <a href="{{ url_for('reception_chat') }}" class="menu-item">
+          <i class="fas fa-comments"></i>
+          <span>Patient Chat</span>
+        </a>
+        <a href="{{ url_for('reception_gallery') }}" class="menu-item active">
+          <i class="fas fa-images"></i>
+          <span>Gallery</span>
+        </a>
+        <a href="{{ url_for('consultation_history') }}" class="menu-item">
+          <i class="fas fa-history"></i>
+          <span>Consultation History</span>
+        </a>
+        <a href="{{ url_for('reception_logout') }}" class="menu-item">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+
+  <div class="main-content">
+    <div class="header">
+      <h2>Photo Gallery</h2>
+      <div class="header-right">
+        <div class="date">
+          <i class="far fa-calendar-alt"></i> <span id="currentDate">Loading...</span>
+        </div>
+        <a href="{{ url_for('reception_logout') }}" class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </div>
+
+    <div class="gallery-container">
+      <div class="gallery-header">
+        <h1 class="gallery-title">Hospital Photo Gallery</h1>
+        <button class="btn btn-primary" onclick="openUploadModal()">
+          <i class="fas fa-upload"></i> Upload New Photo
+        </button>
+      </div>
+
+      <div class="gallery-tabs">
+        <div class="gallery-tab active" data-tab="all" onclick="switchTab('all')">All Photos</div>
+        <div class="gallery-tab" data-tab="pending" onclick="switchTab('pending')">Pending Approval</div>
+        <div class="gallery-tab" data-tab="approved" onclick="switchTab('approved')">Approved</div>
+      </div>
+
+      <div class="gallery-grid" id="galleryGrid">
+        <!-- Gallery items will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal" id="uploadModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeUploadModal()">&times;</span>
+      <h2 class="modal-title">Upload New Photo</h2>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label" for="title">Title (optional)</label>
+          <input type="text" id="title" name="title" class="form-input" placeholder="Enter a title for the photo">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="description">Description (optional)</label>
+          <textarea id="description" name="description" class="form-input form-textarea" placeholder="Add a description for the photo"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="photo">Photo</label>
+          <input type="file" id="photo" name="photo" class="form-input" accept="image/*" capture="environment" required>
+          <small style="display: block; margin-top: 5px; color: #666;">You can select from gallery or take a new photo</small>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+  <script>
+    let currentTab = 'all';
+
+    // Switch between tabs
+    function switchTab(tab) {
+      currentTab = tab;
+
+      // Update active tab
+      document.querySelectorAll('.gallery-tab').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.querySelector(`.gallery-tab[data-tab="${tab}"]`).classList.add('active');
+
+      // Reload gallery with filter
+      loadGallery();
+    }
+
+    // Load gallery items
+    function loadGallery() {
+      fetch(`/api/reception/gallery?filter=${currentTab}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const galleryGrid = document.getElementById('galleryGrid');
+            galleryGrid.innerHTML = '';
+
+            if (data.photos.length === 0) {
+              galleryGrid.innerHTML = `
+                <div class="empty-state">
+                  <i class="fas fa-images"></i>
+                  <p>No photos found in this category.</p>
+                </div>
+              `;
+              return;
+            }
+
+            data.photos.forEach(photo => {
+              const item = document.createElement('div');
+              item.className = 'gallery-item';
+
+              let html = `
+                <img src="${photo.image_path}" alt="${photo.title || 'Gallery Image'}" class="gallery-img">
+                <div class="gallery-info">
+                  ${photo.title ? `<h3 class="gallery-item-title">${photo.title}</h3>` : '<h3 class="gallery-item-title">Untitled Photo</h3>'}
+                  ${photo.description ? `<p class="gallery-desc">${photo.description}</p>` : ''}
+                  <div class="gallery-meta">
+                    <span>By: ${photo.uploaded_by_name}</span>
+                    <span>${new Date(photo.upload_date).toLocaleDateString()}</span>
+                  </div>
+              `;
+
+              if (!photo.approved) {
+                html += `
+                  <div class="pending-badge">Pending Approval</div>
+                  <div class="gallery-actions">
+                    <button class="gallery-btn approve-btn" onclick="approvePhoto(${photo.id})">
+                      <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="gallery-btn reject-btn" onclick="rejectPhoto(${photo.id})">
+                      <i class="fas fa-times"></i> Reject
+                    </button>
+                  </div>
+                `;
+              } else {
+                html += `
+                  <div class="gallery-actions">
+                    <button class="gallery-btn delete-btn" onclick="deletePhoto(${photo.id})">
+                      <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </div>
+                `;
+              }
+
+              html += `</div>`;
+              item.innerHTML = html;
+              galleryGrid.appendChild(item);
+            });
+          } else {
+            alert('Failed to load gallery: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading gallery:', error);
+          alert('An error occurred while loading the gallery. Please try again.');
+        });
+    }
+
+    // Approve a photo
+    function approvePhoto(photoId) {
+      if (confirm('Are you sure you want to approve this photo?')) {
+        fetch('/api/reception/gallery/approve', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ photo_id: photoId })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Photo approved successfully! It is now visible to all patients.');
+            loadGallery();
+          } else {
+            alert('Failed to approve photo: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error approving photo:', error);
+          alert('An error occurred while approving the photo. Please try again.');
+        });
+      }
+    }
+
+    // Reject a photo
+    function rejectPhoto(photoId) {
+      if (confirm('Are you sure you want to reject this photo? This action cannot be undone.')) {
+        fetch('/api/reception/gallery/reject', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ photo_id: photoId })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Photo rejected successfully! The patient has been notified.');
+            loadGallery();
+          } else {
+            alert('Failed to reject photo: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error rejecting photo:', error);
+          alert('An error occurred while rejecting the photo. Please try again.');
+        });
+      }
+    }
+
+    // Delete a photo
+    function deletePhoto(photoId) {
+      if (confirm('Are you sure you want to delete this photo? This action cannot be undone.')) {
+        fetch('/api/reception/gallery/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ photo_id: photoId })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Photo deleted successfully!');
+            loadGallery();
+          } else {
+            alert('Failed to delete photo: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error deleting photo:', error);
+          alert('An error occurred while deleting the photo. Please try again.');
+        });
+      }
+    }
+
+    // Open upload modal
+    function openUploadModal() {
+      document.getElementById('uploadModal').style.display = 'flex';
+    }
+
+    // Close upload modal
+    function closeUploadModal() {
+      document.getElementById('uploadModal').style.display = 'none';
+      document.getElementById('uploadForm').reset();
+    }
+
+    // Handle form submission
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append('title', document.getElementById('title').value);
+      formData.append('description', document.getElementById('description').value);
+
+      const photoFile = document.getElementById('photo').files[0];
+      if (!photoFile) {
+        alert('Please select a photo to upload');
+        return;
+      }
+
+      // Check file size (max 5MB)
+      if (photoFile.size > 5 * 1024 * 1024) {
+        alert('Photo size exceeds 5MB. Please choose a smaller image.');
+        return;
+      }
+
+      formData.append('photo', photoFile);
+
+      // Show loading state
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+      submitBtn.disabled = true;
+
+      fetch('/api/reception/gallery/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Photo uploaded successfully! It is now visible to all patients.');
+          closeUploadModal();
+          loadGallery();
+        } else {
+          alert('Failed to upload photo: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error uploading photo:', error);
+        alert('An error occurred while uploading the photo. Please try again.');
+      })
+      .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      });
+    });
+
+    // Display current date
+    function updateDate() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadGallery();
+      updateDate();
+    });
+  </script>
+</body>
+</html>

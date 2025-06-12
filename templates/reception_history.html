@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation History - AURA Hospital</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reception_common.css') }}">
+    <style>
+        /* Filter Controls */
+        .filter-controls {
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .filter-select, .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            color: var(--dark);
+            background-color: var(--white);
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .filter-btn {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* History Table */
+        .history-table-container {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th, .history-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-table th {
+            background-color: var(--primary-light);
+            font-weight: 600;
+            color: var(--primary-dark);
+            cursor: pointer;
+        }
+
+        .history-table th:hover {
+            background-color: #dbeafe;
+        }
+
+        .history-table th i {
+            margin-left: 5px;
+        }
+
+        .history-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .history-table .patient-name {
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .history-table .doctor-name {
+            color: var(--success);
+        }
+
+        .view-btn {
+            background-color: var(--info);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .view-btn:hover {
+            background-color: #0aa2c0;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination-btn {
+            background-color: var(--white);
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: var(--border-radius-sm);
+            transition: all 0.3s;
+        }
+
+        .pagination-btn:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .pagination-btn.active {
+            background-color: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px var(--shadow-lg);
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--dark);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--gray);
+        }
+
+        .detail-value {
+            color: var(--dark);
+        }
+
+        .notes-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius-sm);
+            margin-top: 15px;
+        }
+
+        .notes-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .notes-content {
+            white-space: pre-line;
+            color: var(--dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo">
+                <h3>AURA Hospital</h3>
+                <p>Reception Portal</p>
+            </div>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('reception_dashboard') }}" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('reception_appointments') }}" class="menu-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="{{ url_for('reception_patients') }}" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Patients</span>
+                </a>
+                <a href="{{ url_for('reception_doctors') }}" class="menu-item">
+                    <i class="fas fa-user-md"></i>
+                    <span>Doctors</span>
+                </a>
+                <a href="{{ url_for('reception_chat') }}" class="menu-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Patient Chat</span>
+                </a>
+                <a href="{{ url_for('reception_gallery') }}" class="menu-item">
+                    <i class="fas fa-images"></i>
+                    <span>Gallery</span>
+                </a>
+                <a href="{{ url_for('consultation_history') }}" class="menu-item active">
+                    <i class="fas fa-history"></i>
+                    <span>Consultation History</span>
+                </a>
+                <a href="{{ url_for('reception_logout') }}" class="menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="page-title">Consultation History</h1>
+                <div class="user-info">
+                    <img src="https://ui-avatars.com/api/?name=Reception&background=0D8ABC&color=fff" alt="User">
+                    <span class="user-name">Reception</span>
+                    <a href="{{ url_for('reception_logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label class="filter-label">Patient</label>
+                    <select class="filter-select" id="patientFilter">
+                        <option value="">All Patients</option>
+                        {% for patient in patients %}
+                            <option value="{{ patient.id }}">{{ patient.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Doctor</label>
+                    <select class="filter-select" id="doctorFilter">
+                        <option value="">All Doctors</option>
+                        {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">{{ doctor.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Date From</label>
+                    <input type="date" class="filter-input" id="dateFromFilter">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Date To</label>
+                    <input type="date" class="filter-input" id="dateToFilter">
+                </div>
+
+                <button class="filter-btn" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+
+                <button class="filter-btn" style="background-color: var(--secondary);" onclick="resetFilters()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+
+            <!-- History Table -->
+            <div class="history-table-container">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Patient <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable(1)">Doctor <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable(2)">Date <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable(3)">Time <i class="fas fa-sort"></i></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if history_data %}
+                            {% for item in history_data %}
+                                <tr data-patient="{{ item.patient_id }}" data-doctor="{{ item.doctor_id }}" data-date="{{ item.date.strftime('%Y-%m-%d') }}">
+                                    <td class="patient-name">{{ item.patient_name }}</td>
+                                    <td class="doctor-name">{{ item.doctor_name }}</td>
+                                    <td>{{ item.formatted_date }}</td>
+                                    <td>{{ item.time }}</td>
+                                    <td>
+                                        <button class="view-btn" onclick="viewDetails('{{ item.id }}', '{{ item.patient_name }}', '{{ item.doctor_name }}', '{{ item.formatted_date }}', '{{ item.time }}', '{{ item.notes|replace('\n', '\\n')|replace('\'', '\\\'') }}')">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center;">No consultation history found</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination (if needed) -->
+            <div class="pagination" id="pagination">
+                <!-- Will be populated by JavaScript if needed -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Consultation Details</h2>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <div class="detail-label">Patient</div>
+                    <div class="detail-value" id="modalPatient"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Doctor</div>
+                    <div class="detail-value" id="modalDoctor"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Date</div>
+                    <div class="detail-value" id="modalDate"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Time</div>
+                    <div class="detail-value" id="modalTime"></div>
+                </div>
+                <div class="notes-section" id="notesSection">
+                    <div class="notes-title">Consultation Notes</div>
+                    <div class="notes-content" id="modalNotes"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to apply filters
+        function applyFilters() {
+            const patientId = document.getElementById('patientFilter').value;
+            const doctorId = document.getElementById('doctorFilter').value;
+            const dateFrom = document.getElementById('dateFromFilter').value;
+            const dateTo = document.getElementById('dateToFilter').value;
+
+            // Get all rows in the table
+            const rows = document.querySelectorAll('#historyTable tbody tr');
+
+            rows.forEach(row => {
+                // Reset display
+                row.style.display = '';
+
+                // Get row data attributes
+                const rowPatientId = row.getAttribute('data-patient');
+                const rowDoctorId = row.getAttribute('data-doctor');
+                const rowDate = row.getAttribute('data-date');
+
+                // Apply patient filter
+                if (patientId && rowPatientId !== patientId) {
+                    row.style.display = 'none';
+                    return;
+                }
+
+                // Apply doctor filter
+                if (doctorId && rowDoctorId !== doctorId) {
+                    row.style.display = 'none';
+                    return;
+                }
+
+                // Apply date range filter
+                if (dateFrom && rowDate < dateFrom) {
+                    row.style.display = 'none';
+                    return;
+                }
+
+                if (dateTo && rowDate > dateTo) {
+                    row.style.display = 'none';
+                    return;
+                }
+            });
+
+            // Update visible rows count
+            updateVisibleRowsCount();
+        }
+
+        // Function to reset filters
+        function resetFilters() {
+            // Reset filter inputs
+            document.getElementById('patientFilter').value = '';
+            document.getElementById('doctorFilter').value = '';
+            document.getElementById('dateFromFilter').value = '';
+            document.getElementById('dateToFilter').value = '';
+
+            // Show all rows
+            const rows = document.querySelectorAll('#historyTable tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+
+            // Update visible rows count
+            updateVisibleRowsCount();
+        }
+
+        // Function to update visible rows count
+        function updateVisibleRowsCount() {
+            const visibleRows = document.querySelectorAll('#historyTable tbody tr[style=""]').length;
+            const totalRows = document.querySelectorAll('#historyTable tbody tr').length;
+
+            // You can display this information somewhere if needed
+            console.log(`Showing ${visibleRows} of ${totalRows} records`);
+        }
+
+        // Function to sort table
+        function sortTable(columnIndex) {
+            const table = document.getElementById('historyTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            // Get current sort direction
+            const th = table.querySelectorAll('th')[columnIndex];
+            const currentDirection = th.getAttribute('data-sort') === 'asc' ? 'desc' : 'asc';
+
+            // Update sort direction for all columns
+            table.querySelectorAll('th').forEach(header => {
+                header.removeAttribute('data-sort');
+                header.querySelector('i').className = 'fas fa-sort';
+            });
+
+            // Set new sort direction for current column
+            th.setAttribute('data-sort', currentDirection);
+            th.querySelector('i').className = currentDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+
+            // Sort rows
+            rows.sort((a, b) => {
+                let aValue = a.querySelectorAll('td')[columnIndex].textContent.trim();
+                let bValue = b.querySelectorAll('td')[columnIndex].textContent.trim();
+
+                // Special handling for date column
+                if (columnIndex === 2) {
+                    aValue = new Date(aValue);
+                    bValue = new Date(bValue);
+                }
+
+                if (aValue < bValue) {
+                    return currentDirection === 'asc' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return currentDirection === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+
+            // Reorder rows in the table
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Function to view details
+        function viewDetails(id, patient, doctor, date, time, notes) {
+            document.getElementById('modalPatient').textContent = patient;
+            document.getElementById('modalDoctor').textContent = doctor;
+            document.getElementById('modalDate').textContent = date;
+            document.getElementById('modalTime').textContent = time;
+
+            // Handle notes (replace escaped newlines and filter out system notes)
+            const notesElement = document.getElementById('modalNotes');
+            if (notes && notes !== 'None') {
+                // Filter out system notes
+                let userNotes = notes.split('[SYSTEM]')[0];
+                notesElement.textContent = userNotes.replace(/\\n/g, '\n').trim();
+
+                // Only show notes section if there are actual user notes
+                if (userNotes.trim()) {
+                    document.getElementById('notesSection').style.display = 'block';
+                } else {
+                    document.getElementById('notesSection').style.display = 'none';
+                }
+            } else {
+                notesElement.textContent = 'No notes available';
+                document.getElementById('notesSection').style.display = 'none';
+            }
+
+            // Show modal
+            document.getElementById('detailsModal').style.display = 'block';
+        }
+
+        // Function to close modal
+        function closeModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Initialize table sorting
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial sort on date column (descending)
+            sortTable(2);
+            const dateHeader = document.querySelectorAll('#historyTable th')[2];
+            dateHeader.setAttribute('data-sort', 'desc');
+            dateHeader.querySelector('i').className = 'fas fa-sort-down';
+        });
+    </script>
+</body>
+</html>
+
+
+

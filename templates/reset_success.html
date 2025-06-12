@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset Success - AURA Hospital</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    :root {
+      --primary: #1565C0;
+      --primary-light: #42A5F5;
+      --primary-dark: #0D47A1;
+      --white: #ffffff;
+      --bg-light: #e3f2fd;
+      --bg-dark: #bbdefb;
+      --shadow-light: rgba(0, 123, 255, 0.1);
+      --shadow-medium: rgba(0, 123, 255, 0.2);
+      --shadow-dark: rgba(0, 123, 255, 0.3);
+      --text-dark: #0d47a1;
+      --text-light: #607d8b;
+      --border-radius-sm: 10px;
+      --border-radius-md: 15px;
+      --border-radius-lg: 20px;
+      --spacing-xs: 5px;
+      --spacing-sm: 10px;
+      --spacing-md: 15px;
+      --spacing-lg: 20px;
+      --spacing-xl: 30px;
+      --spacing-xxl: 40px;
+      --success: #28a745;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-light), var(--bg-dark));
+      overflow-x: hidden;
+      position: relative;
+      padding-top: 70px;
+    }
+    
+    /* Animated background */
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .tooth {
+      position: absolute;
+      opacity: 0.1;
+      font-size: 40px;
+      color: var(--primary-light);
+      animation: float 15s linear infinite;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.1;
+      }
+      90% {
+        opacity: 0.1;
+      }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px var(--shadow-medium);
+      z-index: 1000;
+    }
+
+    .nav-center {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 1px;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 10px var(--shadow-medium);
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-top: 4px;
+    }
+
+    .success-container {
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 15px 30px var(--shadow-medium);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--border-radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: var(--spacing-xxl) var(--spacing-xl);
+      width: 90%;
+      max-width: 500px;
+      margin: 50px auto;
+      text-align: center;
+      animation: fadeIn 0.8s ease-out;
+      transition: all 0.3s ease;
+    }
+
+    .success-icon {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 20px;
+      background-color: rgba(40, 167, 69, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--success);
+      font-size: 50px;
+      animation: scaleIn 0.5s ease-out;
+    }
+
+    .success-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .success-message {
+      color: var(--text-light);
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .login-btn {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: white;
+      text-decoration: none;
+      border-radius: var(--border-radius-sm);
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 10px var(--shadow-medium);
+    }
+
+    .login-btn:hover {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px var(--shadow-dark);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+      }
+      to {
+        transform: scale(1);
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="animated-bg" id="animatedBg"></div>
+
+  <nav>
+    <div class="nav-center">AURA Dental Hospital</div>
+    <div class="nav-right">
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+  </nav>
+
+  <div class="success-container">
+    <div class="success-icon">
+      <i class="fas fa-check"></i>
+    </div>
+    <h1 class="success-title">Password Reset Successful</h1>
+    <p class="success-message">
+      Your password has been successfully reset. You can now log in to your account using your new password.
+    </p>
+    <a href="/login" class="login-btn">
+      <i class="fas fa-sign-in-alt"></i> Go to Login
+    </a>
+  </div>
+
+  <script>
+    // Create animated tooth background
+    function createAnimatedBackground() {
+      const bg = document.getElementById('animatedBg');
+      const icons = ['tooth', 'teeth', 'tooth-brush', 'tooth'];
+      const numIcons = 30;
+      
+      for (let i = 0; i < numIcons; i++) {
+        const icon = document.createElement('i');
+        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+        icon.className = `fas fa-${randomIcon} tooth`;
+        
+        // Random position and animation duration
+        const left = Math.random() * 100;
+        const delay = Math.random() * 15;
+        const duration = 15 + Math.random() * 10;
+        
+        icon.style.left = `${left}%`;
+        icon.style.animationDuration = `${duration}s`;
+        icon.style.animationDelay = `${delay}s`;
+        
+        bg.appendChild(icon);
+      }
+    }
+    
+    // Initialize animation when page loads
+    window.onload = function() {
+      createAnimatedBackground();
+    };
+  </script>
+</body>
+</html>

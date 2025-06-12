@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Report Entry</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: url('static/images/bg.jpg') no-repeat center center/cover;
+      background-color: #e3f2fd;
+      padding-bottom: 40px;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 1000;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .nav-center {
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      width: 220px;
+      height: 60px;
+      margin: 6px 0;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      background: rgba(33, 150, 243, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(33, 150, 243, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-menu button:hover {
+      transform: scale(1.05);
+    }
+
+    .main {
+      margin-top: 30px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .report-card {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 123, 255, 0.3);
+      color: #fff;
+    }
+
+    .report-card h3 {
+      margin-bottom: 10px;
+      color: #0d47a1;
+    }
+
+    textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: none;
+      padding: 10px;
+      margin-top: 5px;
+      resize: vertical;
+    }
+
+    .btn-group {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-group button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .save-btn {
+      background-color: #2196f3;
+      color: white;
+    }
+
+    .save-btn:hover {
+      background-color: #1976d2;
+    }
+
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Doctor Panel</div>
+    <div class="nav-right">
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="alert('Go to Home')">Home</button>
+      <button onclick="alert('Patient History')">Patient History</button>
+      <button onclick="alert('Report Entry')">Report</button>
+      <button onclick="alert('Logout')">Logout</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="report-card" id="report1">
+      <h3 id="patientName1">John Doe - 10:30 AM</h3>
+      <label>Diagnosis:</label>
+      <textarea id="diagnosis1" rows="2" placeholder="Enter diagnosis..."></textarea>
+      <label>Prescription:</label>
+      <textarea id="prescription1" rows="2" placeholder="Enter prescription..."></textarea>
+      <div class="btn-group">
+        <button class="save-btn" onclick="saveReport('report1')">Save</button>
+      </div>
+    </div>
+
+    <div class="report-card" id="report2">
+      <h3 id="patientName2">Jane Smith - 11:15 AM</h3>
+      <label>Diagnosis:</label>
+      <textarea id="diagnosis2" rows="2" placeholder="Enter diagnosis..."></textarea>
+      <label>Prescription:</label>
+      <textarea id="prescription2" rows="2" placeholder="Enter prescription..."></textarea>
+      <div class="btn-group">
+        <button class="save-btn" onclick="saveReport('report2')">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    // Function to save the report and clear the name
+    function saveReport(reportId) {
+      const diagnosis = document.getElementById('diagnosis' + reportId.charAt(reportId.length - 1)).value;
+      const prescription = document.getElementById('prescription' + reportId.charAt(reportId.length - 1)).value;
+      const patientName = document.getElementById('patientName' + reportId.charAt(reportId.length - 1)).innerText;
+
+      // Simulate saving to backend
+      console.log(`Saving report for ${patientName} with Diagnosis: ${diagnosis} and Prescription: ${prescription}`);
+
+      // Clear the report details and name after saving
+      document.getElementById('patientName' + reportId.charAt(reportId.length - 1)).innerText = '';
+      document.getElementById('diagnosis' + reportId.charAt(reportId.length - 1)).value = '';
+      document.getElementById('prescription' + reportId.charAt(reportId.length - 1)).value = '';
+
+      // Optionally hide the report after saving
+      document.getElementById(reportId).style.display = 'none';
+    }
+
+    // Function to enable editing of the report
+    function editReport(reportId) {
+      document.getElementById('diagnosis' + reportId.charAt(reportId.length - 1)).disabled = false;
+      document.getElementById('prescription' + reportId.charAt(reportId.length - 1)).disabled = false;
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+This folder contains background videos for the hospital management system.

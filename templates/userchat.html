@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat with Reception - AURA Dental Hospital</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --primary-light: #e0f2fe;
+      --accent: #06b6d4;
+      --accent-dark: #0891b2;
+      --text-dark: #0f172a;
+      --text-light: #64748b;
+      --bg-light: #f0f9ff;
+      --bg-dark: #e0f2fe;
+      --white: #ffffff;
+      --shadow-light: rgba(14, 165, 233, 0.15);
+      --shadow-medium: rgba(14, 165, 233, 0.25);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--primary-light), var(--bg-light));
+      padding-bottom: 40px;
+      color: var(--text-dark);
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px var(--shadow-light);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 24px;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    .nav-center {
+      color: var(--primary-dark);
+      font-size: 22px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-icons {
+      display: flex;
+      margin-bottom: 5px;
+    }
+
+    .notification-icon {
+      position: relative;
+      color: var(--primary-dark);
+      font-size: 24px;
+      margin-right: 10px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .notification-icon:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: #f44336;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse-badge 1.5s infinite;
+    }
+
+    @keyframes pulse-badge {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+      }
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+      }
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-dark);
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px var(--shadow-medium);
+      padding: 10px;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu a {
+      width: 220px;
+      padding: 12px 16px;
+      margin: 4px 0;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 8px;
+      color: var(--text-dark);
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-menu a i {
+      margin-right: 10px;
+      color: var(--primary);
+    }
+
+    .nav-menu a:hover {
+      background-color: var(--primary-light);
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      margin: 20px;
+      height: calc(100vh - 100px);
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px var(--shadow-light);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 16px 20px;
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-header i {
+      margin-right: 10px;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background-color: var(--bg-light);
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 75%;
+    }
+
+    .message.user {
+      align-self: flex-end;
+    }
+
+    .message.reception {
+      align-self: flex-start;
+    }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px var(--shadow-light);
+      word-break: break-word;
+      position: relative;
+    }
+
+    .message-actions {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: none;
+    }
+
+    .message:hover .message-actions {
+      display: block;
+    }
+
+    .delete-message {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+
+    .message.reception .delete-message,
+    .message.doctor .delete-message {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    .delete-message:hover {
+      background-color: rgba(255, 0, 0, 0.2);
+      color: #fff;
+    }
+
+    .message.reception .delete-message:hover,
+    .message.doctor .delete-message:hover {
+      background-color: rgba(255, 0, 0, 0.1);
+      color: #ff3333;
+    }
+
+    .deleted-message {
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    .message.user .message-bubble {
+      background-color: var(--primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.reception .message-bubble {
+      background-color: white;
+      color: var(--text-dark);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+      align-self: flex-end;
+    }
+
+    .message.reception .message-time {
+      align-self: flex-start;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 16px;
+      background-color: white;
+      border-top: 1px solid var(--primary-light);
+      align-items: center;
+    }
+
+    .file-preview {
+      display: flex;
+      align-items: center;
+      background-color: var(--primary-light);
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin-right: 10px;
+      max-width: 200px;
+    }
+
+    .file-preview span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 14px;
+    }
+
+    .file-preview button {
+      background: none;
+      border: none;
+      color: var(--primary-dark);
+      cursor: pointer;
+      margin-left: 8px;
+    }
+
+    .upload-btn {
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .upload-btn:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 24px;
+      border: 1px solid var(--primary-light);
+      outline: none;
+      font-size: 16px;
+      transition: border-color 0.2s ease;
+    }
+
+    .message-input:focus {
+      border-color: var(--primary);
+    }
+
+    .send-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      margin-left: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .send-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .empty-message {
+      text-align: center;
+      color: var(--text-light);
+      margin: auto;
+      padding: 20px;
+    }
+
+    .attachment-preview {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .attachment-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .attachment-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .chat-container {
+        margin: 10px;
+        height: calc(100vh - 80px);
+      }
+
+      .message {
+        max-width: 85%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+    <div class="nav-center">Chat with Reception</div>
+    <div class="nav-right">
+      <div class="nav-icons">
+        <a href="/notifications" class="notification-icon" title="Notifications">
+          <i class="fas fa-bell"></i>
+          {% if unread_notifications > 0 %}
+          <span class="notification-badge">{{ unread_notifications }}</span>
+          {% endif %}
+        </a>
+      </div>
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <a href="/userhome"><i class="fas fa-home"></i>Dashboard</a>
+      <a href="/notifications"><i class="fas fa-bell"></i>Notifications</a>
+      <a href="/appointment"><i class="fas fa-calendar-plus"></i>Book Appointment</a>
+      <a href="/status"><i class="fas fa-clock"></i>Appointment Status</a>
+      <a href="/history"><i class="fas fa-history"></i>Medical History</a>
+      <a href="/chat" class="active"><i class="fas fa-comments"></i>Chat</a>
+      <a href="/gallery"><i class="fas fa-images"></i>Gallery</a>
+      <a href="/logout"><i class="fas fa-sign-out-alt"></i>Logout</a>
+    </div>
+  </nav>
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <div><i class="fas fa-headset"></i> Reception Support</div>
+      <div>AURA Dental Hospital</div>
+    </div>
+
+    <!-- Chat Box -->
+    <div class="chat-box" id="chatBox">
+      <!-- Messages will be loaded dynamically -->
+    </div>
+
+    <!-- Input Section -->
+    <div class="input-container">
+      <div id="filePreview" class="file-preview" style="display: none;">
+        <span id="fileName"></span>
+        <button onclick="removeFile()"><i class="fas fa-times"></i></button>
+      </div>
+
+      <button class="upload-btn" onclick="document.getElementById('uploadFile').click()">
+        <i class="fas fa-paperclip"></i>
+      </button>
+      <input type="file" class="file-input" id="uploadFile" onchange="handleFileSelect()" />
+
+      <input type="text" class="message-input" id="messageInput" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendMessage()" />
+      <button class="send-btn" onclick="sendMessage()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let selectedFile = null;
+    let userId = {{ user_id }};
+    let userName = "{{ user_name }}";
+
+    // Function to check for new notifications
+    function checkNotifications() {
+      fetch('/api/notifications/count')
+        .then(response => response.json())
+        .then(data => {
+          updateNotificationBadges(data.count);
+        })
+        .catch(error => console.error('Error checking notifications:', error));
+    }
+
+    // Function to update notification badges
+    function updateNotificationBadges(count) {
+      // Update the notification icon badge
+      const navBadge = document.querySelector('.notification-icon .notification-badge');
+
+      if (count > 0) {
+        // If badge doesn't exist, create it
+        if (!navBadge) {
+          const navIcon = document.querySelector('.notification-icon');
+          if (navIcon) {
+            const badge = document.createElement('span');
+            badge.className = 'notification-badge';
+            badge.textContent = count;
+            navIcon.appendChild(badge);
+          }
+        } else {
+          // Update existing badge
+          navBadge.textContent = count;
+        }
+      } else {
+        // Remove badge if count is 0
+        if (navBadge) navBadge.remove();
+      }
+    }
+
+    // Initialize chat when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      loadChatHistory();
+
+      // Set up polling for new messages
+      setInterval(checkNewMessages, 5000);
+
+      // Start checking for new notifications
+      checkNotifications();
+      setInterval(checkNotifications, 30000); // Check every 30 seconds
+    });
+
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    function loadChatHistory() {
+      fetch('/api/chat/history?type=reception')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            displayMessages(data.messages);
+          } else {
+            console.error("Failed to load chat history:", data.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading chat history:", error);
+        });
+    }
+
+    function displayMessages(messages) {
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML = ''; // Clear existing messages
+
+      if (messages.length === 0) {
+        chatBox.innerHTML = '<div class="empty-message">No messages yet. Start a conversation with reception.</div>';
+        return;
+      }
+
+      messages.forEach(message => {
+        const messageDiv = createMessageElement(message);
+        chatBox.appendChild(messageDiv);
+      });
+
+      scrollToBottom();
+    }
+
+    function createMessageElement(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${message.sender_type}`;
+      messageDiv.dataset.id = message.id;
+
+      const messageDate = new Date(message.timestamp);
+
+      // Check if message is deleted
+      if (message.is_deleted) {
+        let messageContent = `
+          <div class="message-bubble deleted-message">
+            <i class="fas fa-ban"></i> This message was deleted
+          </div>
+          <div class="message-time">${formatTime(messageDate)}</div>
+        `;
+        messageDiv.innerHTML = messageContent;
+        return messageDiv;
+      }
+
+      let messageContent = `
+        <div class="message-bubble">
+          ${message.content}
+          ${message.sender_type === 'user' ? `
+            <div class="message-actions">
+              <button class="delete-message" onclick="deleteMessage(${message.id})" title="Delete Message">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      // Add attachment if present
+      if (message.attachment) {
+        const fileExt = message.attachment.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+          messageContent += `<img src="${message.attachment}" class="attachment-preview" alt="Attachment" />`;
+        } else {
+          messageContent += `<a href="${message.attachment}" class="attachment-link" target="_blank"><i class="fas fa-file"></i> View Attachment</a>`;
+        }
+      }
+
+      messageContent += `<div class="message-time">${formatTime(messageDate)}</div>`;
+
+      messageDiv.innerHTML = messageContent;
+      return messageDiv;
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+             ' | ' + date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+
+    function handleFileSelect() {
+      const fileInput = document.getElementById('uploadFile');
+      selectedFile = fileInput.files[0];
+
+      if (selectedFile) {
+        const filePreview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+
+        fileName.textContent = selectedFile.name;
+        filePreview.style.display = 'flex';
+      }
+    }
+
+    function removeFile() {
+      selectedFile = null;
+      document.getElementById('uploadFile').value = '';
+      document.getElementById('filePreview').style.display = 'none';
+    }
+
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value.trim();
+
+      if (message === '' && !selectedFile) {
+        return; // Don't send empty messages
+      }
+
+      // Create form data for the message and file
+      const formData = new FormData();
+      formData.append('message', message);
+      formData.append('recipient_type', 'reception');
+
+      if (selectedFile) {
+        formData.append('attachment', selectedFile);
+      }
+
+      // Show message immediately for better UX
+      const tempMessage = {
+        id: 'temp-' + Date.now(),
+        sender_type: 'user',
+        content: message,
+        timestamp: new Date().toISOString(),
+        attachment: selectedFile ? URL.createObjectURL(selectedFile) : null
+      };
+
+      const messageElement = createMessageElement(tempMessage);
+      document.getElementById('chatBox').appendChild(messageElement);
+      scrollToBottom();
+
+      // Clear input
+      messageInput.value = '';
+      removeFile();
+
+      // Send to server
+      fetch('/api/chat/send', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          console.error("Failed to send message:", data.message);
+          alert("Failed to send message. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error("Error sending message:", error);
+        alert("Error sending message. Please check your connection.");
+      });
+    }
+
+    function checkNewMessages() {
+      const lastMessageTime = getLastMessageTimestamp();
+
+      fetch(`/api/chat/new?type=reception&since=${lastMessageTime}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.messages.length > 0) {
+            appendNewMessages(data.messages);
+          }
+        })
+        .catch(error => {
+          console.error("Error checking for new messages:", error);
+        });
+    }
+
+    function getLastMessageTimestamp() {
+      const messages = document.querySelectorAll('.message');
+      if (messages.length === 0) {
+        return '1970-01-01T00:00:00Z';
+      }
+
+      // Get all message timestamps
+      const timestamps = Array.from(messages)
+        .map(msg => {
+          const timeDiv = msg.querySelector('.message-time');
+          if (!timeDiv) return null;
+
+          // Extract date from the formatted time string
+          const timeText = timeDiv.textContent;
+          const dateParts = timeText.split(' | ')[1].split(' ');
+          const month = getMonthNumber(dateParts[0]);
+          const day = parseInt(dateParts[1]);
+
+          // Create a date object
+          const date = new Date();
+          date.setMonth(month);
+          date.setDate(day);
+
+          return date;
+        })
+        .filter(date => date !== null);
+
+      // Get the most recent timestamp
+      const latestDate = new Date(Math.max.apply(null, timestamps));
+      return latestDate.toISOString();
+    }
+
+    function getMonthNumber(monthAbbr) {
+      const months = {
+        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+      };
+      return months[monthAbbr] || 0;
+    }
+
+    function appendNewMessages(messages) {
+      const chatBox = document.getElementById('chatBox');
+
+      // Remove empty message if present
+      const emptyMessage = chatBox.querySelector('.empty-message');
+      if (emptyMessage) {
+        chatBox.removeChild(emptyMessage);
+      }
+
+      messages.forEach(message => {
+        // Skip messages that might already be displayed
+        if (document.querySelector(`.message[data-id="${message.id}"]`)) {
+          return;
+        }
+
+        const messageDiv = createMessageElement(message);
+        chatBox.appendChild(messageDiv);
+      });
+
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      const chatBox = document.getElementById('chatBox');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function deleteMessage(messageId) {
+      if (!confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+        return;
+      }
+
+      fetch('/api/chat/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messageId: messageId
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Find the message element and update its appearance
+          const messageElement = document.querySelector(`.message[data-id="${messageId}"]`);
+          if (messageElement) {
+            const messageBubble = messageElement.querySelector('.message-bubble');
+            if (messageBubble) {
+              // Replace content with deleted message indicator
+              messageBubble.innerHTML = '<i class="fas fa-ban"></i> This message was deleted';
+              messageBubble.classList.add('deleted-message');
+
+              // Remove delete button
+              const messageActions = messageElement.querySelector('.message-actions');
+              if (messageActions) {
+                messageActions.remove();
+              }
+            }
+          }
+        } else {
+          alert('Failed to delete message: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting message:', error);
+        alert('An error occurred while deleting the message. Please try again.');
+      });
+    }
+</script>
+</body>
+</html>

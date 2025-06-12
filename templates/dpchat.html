@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat with Doctor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: url('static/images/bg.jpg') no-repeat center center/cover;
+      background-color: #e3f2fd;
+      padding-bottom: 40px;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .nav-center {
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      width: 220px;
+      height: 60px;
+      margin: 6px 0;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      background: rgba(33, 150, 243, 0.6); /* Same light-blue for all */
+      box-shadow: 0 8px 32px 0 rgba(33, 150, 243, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-menu button:hover {
+      transform: scale(1.05);
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin: 20px;
+      height: 80vh;
+    }
+
+    .doctor-name {
+      font-size: 20px;
+      color: #ececec;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .chat-box {
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 123, 255, 0.3);
+      overflow-y: scroll;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+        display: flex;
+        align-items: flex-start;
+        max-width: 75%;
+    }
+
+    .message .user {
+        background-color: #2196f3;
+        color: white;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 85%; /* Adjust the max-width to ensure it doesn't take too much space */
+        margin-left: auto;  /* Align user messages to the right */
+        text-align: right;
+        margin-right: 10px;
+    }
+
+    .message .doctor {
+        background-color: #e0e0e0;
+        color: #000;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 70%;
+        margin-right: auto;  /* Align doctor messages to the left */
+        text-align: left;
+    }
+
+
+    .input-container {
+      display: flex;
+      width: 100%;
+      align-items: center;
+    }
+
+    /* Custom button style */
+    .upload-btn {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .upload-btn:hover {
+      background-color: #1976d2;
+    }
+
+    /* Hide the default file input */
+    .file-input {
+      display: none;
+    }
+
+    .message-input {
+      width: 80%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
+
+    .send-btn {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .send-btn:hover {
+      background-color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">patient chat</div>
+    <div class="nav-right">
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='home.html'">Home</button>
+      <button>About</button>
+      <button>Services</button>
+      <button>Address</button>
+      <button>Logout</button>
+    </div>
+  </nav>
+
+  <div class="chat-container">
+    <div class="doctor-name">Sunil Kumar</div>
+    
+    <!-- Chat Box -->
+    <div class="chat-box" id="chatBox">
+      <!-- Dynamic messages go here -->
+    </div>
+    
+    <!-- Input Section -->
+    <div class="input-container">
+      <!-- Choose File Button (with custom style) -->
+      <button class="upload-btn" onclick="document.getElementById('uploadFile').click()">Choose File</button>
+      <!-- Hidden File Input -->
+      <input type="file" class="file-input" id="uploadFile" onchange="uploadFile()" />
+      
+      <input type="text" class="message-input" id="messageInput" placeholder="Type your message..." />
+      <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Toggle the navigation menu
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    // Function to handle file upload
+    function uploadFile() {
+      const fileInput = document.getElementById('uploadFile');
+      const file = fileInput.files[0];
+
+      if (file) {
+        const fileUrl = URL.createObjectURL(file); // Create a URL for the file
+        const fileName = file.name;
+        
+        // Display the uploaded file (image/video)
+        const messageBox = document.createElement('div');
+        messageBox.classList.add('message');
+        messageBox.innerHTML = `
+          <div class="user">
+            <p>Uploaded: <a href="${fileUrl}" target="_blank">${fileName}</a></p>
+          </div>
+        `;
+        document.getElementById('chatBox').appendChild(messageBox);
+        scrollToBottom();
+      }
+    }
+
+    // Send a message
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value.trim();
+      if (message !== '') {
+        // Create message div for the user (patient)
+        const messageBox = document.createElement('div');
+        messageBox.classList.add('message');
+        messageBox.innerHTML = `
+          <div class="user">
+            <p>${message}</p>
+          </div>
+        `;
+        document.getElementById('chatBox').appendChild(messageBox);
+        
+        // Clear input field after sending
+        messageInput.value = '';
+        scrollToBottom(); // Scroll to bottom after message is sent
+        
+        // Simulate doctor's reply after a short delay
+        setTimeout(function() {
+          sendDoctorMessage("Hello, how can I help you?");
+        }, 1000);
+      }
+    }
+
+    // Function to simulate doctor's message
+    function sendDoctorMessage(message) {
+      const messageBox = document.createElement('div');
+      messageBox.classList.add('message');
+      messageBox.innerHTML = `
+        <div class="doctor">
+          <p>${message}</p>
+        </div>
+      `;
+      document.getElementById('chatBox').appendChild(messageBox);
+      scrollToBottom(); // Scroll to bottom after doctor replies
+    }
+
+    // Scroll to bottom of the chat box
+    function scrollToBottom() {
+      const chatBox = document.getElementById('chatBox');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Appointment Booking</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    :root {
+      --primary: #1976D2;
+      --primary-light: #42A5F5;
+      --primary-dark: #0D47A1;
+      --accent: #FF5722;
+      --text-light: #FFFFFF;
+      --text-dark: #333333;
+      --bg-light: #F5F5F5;
+      --bg-dark: #E0E0E0;
+      --shadow-light: rgba(0, 123, 255, 0.1);
+      --shadow-medium: rgba(0, 123, 255, 0.2);
+      --shadow-dark: rgba(0, 123, 255, 0.3);
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .animated-bg video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.15;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: var(--primary-dark);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .nav-center {
+      color: var(--primary-dark);
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-icons {
+      display: flex;
+      margin-bottom: 5px;
+    }
+
+    .notification-icon {
+      position: relative;
+      color: var(--primary-dark);
+      font-size: 24px;
+      margin-right: 10px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .notification-icon:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: #f44336;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse-badge 1.5s infinite;
+    }
+
+    @keyframes pulse-badge {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+      }
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+      }
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-dark);
+      margin-top: 4px;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      overflow: hidden;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      padding: 15px;
+      border: none;
+      background: none;
+      text-align: left;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: var(--primary-dark);
+      font-weight: 500;
+      width: 200px;
+    }
+
+    .nav-menu button:hover {
+      background: #f0f7ff;
+      padding-left: 25px;
+    }
+
+    .page-title {
+      text-align: center;
+      padding: 30px 0;
+      color: var(--primary-dark);
+      font-size: 32px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      animation: fadeInDown 1s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .doctor-list {
+      margin: 20px auto;
+      max-width: 1000px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 0 20px;
+      animation: fadeIn 1s ease-out 0.3s both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .doctor-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+      overflow: hidden;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .doctor-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 123, 255, 0.3);
+    }
+
+    .doctor-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20px;
+      flex-shrink: 0;
+    }
+
+    .doctor-avatar i {
+      font-size: 40px;
+      color: white;
+    }
+
+    .doctor-details {
+      flex-grow: 1;
+    }
+
+    .doctor-name {
+      color: var(--primary-dark);
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .doctor-spec {
+      font-size: 16px;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .doctor-rating {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .stars {
+      display: flex;
+      margin-right: 8px;
+    }
+
+    .stars i {
+      color: #FFD700;
+      margin-right: 2px;
+    }
+
+    .rating-text {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .doctor-info {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .book-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-left: 20px;
+    }
+
+    .book-btn:hover {
+      background: var(--primary-dark);
+      transform: scale(1.05);
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--primary-dark);
+      position: relative;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .doctor-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 15px;
+      }
+
+      .doctor-avatar {
+        margin-right: 0;
+        margin-bottom: 15px;
+      }
+
+      .book-btn {
+        margin-left: 0;
+        margin-top: 15px;
+        width: 100%;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Video background -->
+  <div class="animated-bg">
+    <video autoplay muted loop>
+      <source src="{{ url_for('static', filename='videos/dental_background.mp4') }}" type="video/mp4">
+    </video>
+  </div>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Appointment Booking</div>
+    <div class="nav-right">
+      <div class="nav-icons">
+        <a href="/notifications" class="notification-icon" title="Notifications">
+          <i class="fas fa-bell"></i>
+          {% if unread_notifications > 0 %}
+          <span class="notification-badge">{{ unread_notifications }}</span>
+          {% endif %}
+        </a>
+      </div>
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='/userhome'">Dashboard</button>
+      <button onclick="window.location.href='/notifications'">Notifications</button>
+      <button onclick="window.location.href='/appointment'">Book Appointment</button>
+      <button onclick="window.location.href='/status'">Appointment Status</button>
+      <button onclick="window.location.href='/history'">Medical History</button>
+      <button onclick="window.location.href='/chat'">Chat with Doctor</button>
+      <button onclick="window.location.href='/gallery'">Gallery</button>
+      <button onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </nav>
+
+  <h1 class="page-title">Choose a Doctor for Your Appointment</h1>
+
+  <!-- Replace the static doctor list with dynamic data -->
+  <div class="doctor-list">
+    {% for doctor in doctors %}
+    <div class="doctor-card">
+      <div class="doctor-avatar">
+        <i class="fas fa-user-md"></i>
+      </div>
+      <div class="doctor-details">
+        <div class="doctor-name">{{ doctor.name }}</div>
+        <div class="doctor-spec">{{ doctor.specialty }}</div>
+        <div class="doctor-rating">
+          <div class="stars">
+            {% set avg_rating = doctor.avg_rating|default(5) %}
+            {% for i in range(5) %}
+              {% if i < avg_rating|int %}
+                <i class="fas fa-star"></i>
+              {% elif i < avg_rating and i == avg_rating|int %}
+                <i class="fas fa-star-half-alt"></i>
+              {% else %}
+                <i class="far fa-star"></i>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <span class="rating-text">{{ avg_rating|default(5)|round(1) }} ({{ doctor.review_count|default(0) }} reviews)</span>
+        </div>
+        <div class="doctor-info">{{ doctor.description }}</div>
+      </div>
+      <button class="book-btn" onclick="bookAppointment({{ doctor.id }}, '{{ doctor.name }}', '{{ doctor.specialty }}')">Book Appointment</button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Add a booking modal -->
+  <div id="bookingModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+      <span class="close" onclick="closeModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+      <h2 id="modalTitle" style="margin-bottom: 20px; color: var(--primary-dark);">Book Appointment</h2>
+
+      <input type="hidden" id="doctorId">
+
+      <div style="margin-bottom: 15px;">
+        <label for="appointmentDate" style="display: block; margin-bottom: 5px; font-weight: 500;">Preferred Date:</label>
+        <input type="date" id="appointmentDate" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+        <div id="selectedDateDisplay" style="margin-top: 5px; font-weight: 500; color: var(--primary-dark); display: none;">
+          Selected date: <span id="displayFormattedDate"></span>
+        </div>
+        <input type="hidden" id="formattedDate">
+        <small style="display: block; margin-top: 5px; color: #666;">Please select your preferred appointment date</small>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="appointmentNotes" style="display: block; margin-bottom: 5px; font-weight: 500;">Description (optional):</label>
+        <textarea id="appointmentNotes" rows="3" placeholder="Describe your symptoms or reason for visit" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd; resize: vertical;"></textarea>
+      </div>
+
+      <div id="bookingError" style="color: #F44336; margin-bottom: 15px; display: none;"></div>
+
+      <button onclick="submitAppointment()" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; width: 100%;">Request Appointment</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2023 AURA Dental Hospital. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Store doctor working days information
+    const doctorWorkingDays = {
+      {% for doctor in doctors %}
+        {{ doctor.id }}: "{{ doctor.available_days }}",
+      {% endfor %}
+    };
+
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    // Function to check if a date is a working day for a doctor
+    function isDoctorWorkingDay(doctorId, dateObj) {
+      if (!doctorId || !dateObj) return true; // Default to true if no doctor selected
+
+      // Get the day of the week (0 = Sunday, 1 = Monday, etc.)
+      const dayOfWeek = dateObj.getDay();
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayName = dayNames[dayOfWeek];
+
+      // Get the doctor's working days
+      const workingDays = doctorWorkingDays[doctorId];
+      if (!workingDays) return true; // Default to true if doctor not found
+
+      // Check if the day is in the doctor's working days
+      return workingDays.split(',').map(day => day.trim()).includes(dayName);
+    }
+
+    // Function to get the next working day for a doctor
+    function getNextWorkingDay(doctorId, dateObj) {
+      if (!doctorId || !dateObj) return null;
+
+      // Clone the date object to avoid modifying the original
+      const nextDate = new Date(dateObj);
+
+      // Try the next 14 days (to avoid infinite loop)
+      for (let i = 1; i <= 14; i++) {
+        // Move to the next day
+        nextDate.setDate(nextDate.getDate() + 1);
+
+        // Check if it's a working day
+        if (isDoctorWorkingDay(doctorId, nextDate)) {
+          return nextDate;
+        }
+      }
+
+      return null; // No working day found in the next 14 days
+    }
+
+    // Convert date from YYYY-MM-DD to DD-MM-YYYY format and display it
+    document.getElementById('appointmentDate').addEventListener('change', function(e) {
+      const dateValue = e.target.value; // Format: YYYY-MM-DD
+      if (dateValue) {
+        const dateObj = new Date(dateValue);
+        const doctorId = document.getElementById('doctorId').value;
+
+        // Check if the selected date is a working day for the doctor
+        if (!isDoctorWorkingDay(doctorId, dateObj)) {
+          // Get the next working day
+          const nextWorkingDay = getNextWorkingDay(doctorId, dateObj);
+
+          if (nextWorkingDay) {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayName = dayNames[dateObj.getDay()];
+            const nextDayName = dayNames[nextWorkingDay.getDay()];
+            const formattedNextDay = nextWorkingDay.toISOString().split('T')[0]; // YYYY-MM-DD
+
+            // Ask the user if they want to use the next working day
+            if (confirm(`The selected doctor doesn't work on ${dayName}s.\n\nWould you like to schedule for their next working day (${nextDayName}, ${formattedNextDay})?`)) {
+              this.value = formattedNextDay;
+              dateObj = nextWorkingDay;
+            } else {
+              // If user doesn't want to use the next working day, clear the date
+              this.value = '';
+              document.getElementById('formattedDate').value = '';
+              document.getElementById('selectedDateDisplay').style.display = 'none';
+              return;
+            }
+          } else {
+            alert(`The selected doctor doesn't work on ${dayNames[dateObj.getDay()]}s and no upcoming working days were found.`);
+            this.value = '';
+            document.getElementById('formattedDate').value = '';
+            document.getElementById('selectedDateDisplay').style.display = 'none';
+            return;
+          }
+        }
+
+        // Format the date as DD-MM-YYYY
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const year = dateObj.getFullYear();
+        const formattedDate = `${day}-${month}-${year}`; // Format: DD-MM-YYYY
+
+        // Update hidden input
+        document.getElementById('formattedDate').value = formattedDate;
+
+        // Display the formatted date to the user
+        document.getElementById('displayFormattedDate').textContent = formattedDate;
+        document.getElementById('selectedDateDisplay').style.display = 'block';
+
+        console.log("Date selected:", dateValue, "Formatted as:", formattedDate);
+      } else {
+        document.getElementById('formattedDate').value = '';
+        document.getElementById('selectedDateDisplay').style.display = 'none';
+        console.log("Date cleared");
+      }
+    });
+
+    function bookAppointment(doctorId, doctorName, specialty) {
+      document.getElementById('modalTitle').innerText = `Book Appointment with ${doctorName}`;
+      document.getElementById('doctorId').value = doctorId;
+
+      // Set minimum date to today (allow same-day appointments)
+      const today = new Date();
+      const todayFormatted = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      document.getElementById('appointmentDate').min = todayFormatted;
+
+      // Clear previous values
+      document.getElementById('appointmentDate').value = '';
+      document.getElementById('formattedDate').value = '';
+      document.getElementById('selectedDateDisplay').style.display = 'none';
+      document.getElementById('appointmentNotes').value = '';
+      document.getElementById('bookingError').style.display = 'none';
+
+      // Show the modal
+      document.getElementById('bookingModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('bookingModal').style.display = 'none';
+      document.getElementById('appointmentDate').value = '';
+      document.getElementById('formattedDate').value = '';
+      document.getElementById('selectedDateDisplay').style.display = 'none';
+      document.getElementById('appointmentNotes').value = '';
+      document.getElementById('bookingError').style.display = 'none';
+    }
+
+    function submitAppointment() {
+      const doctorId = document.getElementById('doctorId').value;
+      const dateInput = document.getElementById('appointmentDate').value;
+      const formattedDate = document.getElementById('formattedDate').value;
+      const notes = document.getElementById('appointmentNotes').value;
+
+      console.log("Submitting appointment with:", {
+        doctorId,
+        dateInput,
+        formattedDate,
+        notes
+      });
+
+      // Validate inputs
+      if (!dateInput) {
+        document.getElementById('bookingError').innerText = 'Please select a preferred date';
+        document.getElementById('bookingError').style.display = 'block';
+        return;
+      }
+
+      // Check if date is today and validate it's not in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to beginning of day for comparison
+
+      const selectedDate = new Date(dateInput);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        document.getElementById('bookingError').innerText = 'Cannot book an appointment for a past date';
+        document.getElementById('bookingError').style.display = 'block';
+        return;
+      }
+
+      // If formattedDate is empty but dateInput is not, format it now
+      if (!formattedDate && dateInput) {
+        const [year, month, day] = dateInput.split('-');
+        const newFormattedDate = `${day}-${month}-${year}`;
+        document.getElementById('formattedDate').value = newFormattedDate;
+        formattedDate = newFormattedDate;
+        console.log("Formatted date on submit:", formattedDate);
+      }
+
+      // Send booking request to server
+      fetch('/api/book_appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          doctor_id: doctorId,
+          date: formattedDate, // Send in DD-MM-YYYY format
+          notes: notes
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Appointment request sent successfully! The doctor will review your request and confirm a time.');
+          closeModal();
+          window.location.href = '/status';
+        } else {
+          document.getElementById('bookingError').innerText = data.message || 'Failed to book appointment. Please try again.';
+          document.getElementById('bookingError').style.display = 'block';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('bookingError').innerText = 'An error occurred. Please try again.';
+        document.getElementById('bookingError').style.display = 'block';
+      });
+    }
+
+    // Create animated background
+    function createAnimatedBackground() {
+      const bg = document.getElementById('animatedBg');
+      const colors = ['#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6'];
+
+      for (let i = 0; i < 50; i++) {
+        const circle = document.createElement('div');
+        const size = Math.random() * 100 + 50;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        circle.style.position = 'absolute';
+        circle.style.width = `${size}px`;
+        circle.style.height = `${size}px`;
+        circle.style.borderRadius = '50%';
+        circle.style.background = color;
+        circle.style.opacity = '0.3';
+        circle.style.left = `${Math.random() * 100}%`;
+        circle.style.top = `${Math.random() * 100}%`;
+        circle.style.transform = 'scale(0)';
+        circle.style.animation = `pulse ${Math.random() * 10 + 5}s infinite alternate`;
+
+        bg.appendChild(circle);
+      }
+
+      // Add keyframes for the pulse animation
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes pulse {
+          0% { transform: scale(0); opacity: 0.1; }
+          100% { transform: scale(1); opacity: 0.3; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Function to check for new notifications
+    function checkNotifications() {
+      fetch('/api/notifications/count')
+        .then(response => response.json())
+        .then(data => {
+          updateNotificationBadges(data.count);
+        })
+        .catch(error => console.error('Error checking notifications:', error));
+    }
+
+    // Function to update notification badges
+    function updateNotificationBadges(count) {
+      // Update the notification icon badge
+      const navBadge = document.querySelector('.notification-icon .notification-badge');
+
+      if (count > 0) {
+        // If badge doesn't exist, create it
+        if (!navBadge) {
+          const navIcon = document.querySelector('.notification-icon');
+          if (navIcon) {
+            const badge = document.createElement('span');
+            badge.className = 'notification-badge';
+            badge.textContent = count;
+            navIcon.appendChild(badge);
+          }
+        } else {
+          // Update existing badge
+          navBadge.textContent = count;
+        }
+      } else {
+        // Remove badge if count is 0
+        if (navBadge) navBadge.remove();
+      }
+    }
+
+    // Initialize animation when page loads
+    window.onload = function() {
+      createAnimatedBackground();
+      // Start checking for new notifications
+      checkNotifications();
+      setInterval(checkNotifications, 30000); // Check every 30 seconds
+    };
+  </script>
+</body>
+</html>

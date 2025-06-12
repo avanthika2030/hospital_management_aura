@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Reception Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reception_common.css') }}">
+    <style>
+        /* Dashboard specific styles */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 24px;
+            color: var(--white);
+        }
+
+        .patients-icon {
+            background-color: var(--primary);
+        }
+
+        .doctors-icon {
+            background-color: var(--success);
+        }
+
+        .appointments-icon {
+            background-color: var(--warning);
+        }
+
+        .today-icon {
+            background-color: var(--secondary);
+        }
+
+        .stat-info h3 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .stat-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .action-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .action-card h3 i {
+            margin-right: 10px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 12px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .action-button i {
+            margin-right: 8px;
+        }
+
+        .action-button:hover {
+            background-color: var(--primary);
+            color: var(--white);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .stat-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .stat-icon {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo">
+                <h3>AURA Hospital</h3>
+                <p>Reception Portal</p>
+            </div>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('reception_dashboard') }}" class="menu-item active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('reception_appointments') }}" class="menu-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="{{ url_for('reception_patients') }}" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Patients</span>
+                </a>
+                <a href="{{ url_for('reception_doctors') }}" class="menu-item">
+                    <i class="fas fa-user-md"></i>
+                    <span>Doctors</span>
+                </a>
+                <a href="{{ url_for('reception_chat') }}" class="menu-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Patient Chat</span>
+                </a>
+                <a href="{{ url_for('reception_gallery') }}" class="menu-item">
+                    <i class="fas fa-images"></i>
+                    <span>Gallery</span>
+                </a>
+                <a href="{{ url_for('consultation_history') }}" class="menu-item">
+                    <i class="fas fa-history"></i>
+                    <span>Consultation History</span>
+                </a>
+                <a href="{{ url_for('reception_logout') }}" class="menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h2>Reception Dashboard</h2>
+                <div class="header-right">
+                    <div class="date">
+                        <i class="far fa-calendar-alt"></i> <span id="currentDate">Loading...</span>
+                    </div>
+                    <a href="{{ url_for('reception_logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-icon patients-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ patient_count }}</h3>
+                        <p>Total Patients</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon doctors-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ doctor_count }}</h3>
+                        <p>Total Doctors</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon appointments-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ pending_appointments }}</h3>
+                        <p>Pending Appointments</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon today-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ today_appointments }}</h3>
+                        <p>Today's Appointments</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-cards">
+                <div class="action-card">
+                    <h3><i class="fas fa-tasks"></i> Quick Actions</h3>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('reception_appointments', status='pending') }}" class="action-button">
+                            <i class="fas fa-clock"></i> Pending Appointments
+                        </a>
+                        <a href="{{ url_for('reception_appointments', date='today') }}" class="action-button">
+                            <i class="fas fa-calendar-day"></i> Today's Schedule
+                        </a>
+                        <a href="{{ url_for('reception_patients') }}" class="action-button">
+                            <i class="fas fa-user-plus"></i> Manage Patients
+                        </a>
+                        <a href="{{ url_for('reception_chat') }}" class="action-button">
+                            <i class="fas fa-comments"></i> Patient Chat
+                        </a>
+                        <a href="{{ url_for('reception_gallery') }}" class="action-button">
+                            <i class="fas fa-images"></i> Photo Gallery
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Display current date
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Update date when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDate();
+
+            // Add event listener for mobile menu toggle
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+            }
+
+            // Close sidebar when clicking on a menu item on mobile
+            const menuItems = document.querySelectorAll('.sidebar-menu .menu-item');
+            if (window.innerWidth <= 480) {
+                menuItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        setTimeout(() => {
+                            document.getElementById('sidebar').classList.remove('active');
+                        }, 300);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

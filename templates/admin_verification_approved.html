@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Approved - AURA Hospital Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1565C0;
+            --secondary-color: #0D47A1;
+            --accent-color: #E3F2FD;
+            --text-color: #333;
+            --light-text: #757575;
+            --danger-color: #F44336;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .verification-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .verification-header {
+            margin-bottom: 30px;
+        }
+        
+        .verification-header h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .verification-header p {
+            color: var(--light-text);
+            font-size: 16px;
+        }
+        
+        .verification-icon {
+            font-size: 64px;
+            color: var(--success-color);
+            margin-bottom: 20px;
+            animation: bounce 1s;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-30px);
+            }
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+        
+        .verification-message {
+            margin-bottom: 30px;
+        }
+        
+        .verification-message h2 {
+            font-size: 24px;
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+        
+        .verification-message p {
+            color: var(--light-text);
+            margin-bottom: 10px;
+        }
+        
+        .verification-status {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .continue-btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .continue-btn:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="verification-header">
+            <i class="fas fa-check-circle verification-icon"></i>
+            <h1>AURA Hospital</h1>
+            <p>Admin Verification</p>
+        </div>
+        
+        <div class="verification-message">
+            <h2>Verification Approved</h2>
+            <p>You have successfully approved this login attempt.</p>
+            <p>The user can now access the admin panel.</p>
+        </div>
+        
+        <div class="verification-status">
+            Login approved successfully!
+        </div>
+        
+        <p>You can close this window now.</p>
+    </div>
+</body>
+</html>

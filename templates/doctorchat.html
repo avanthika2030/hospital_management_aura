@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: url('static/images/bg.jpg') no-repeat center center/cover;
+      background-color: #e3f2fd;
+      padding-bottom: 40px;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .nav-center {
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      width: 220px;
+      height: 60px;
+      margin: 6px 0;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      background: rgba(33, 150, 243, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(33, 150, 243, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-menu button:hover {
+      transform: scale(1.05);
+    }
+
+    .patient-list {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+    }
+
+    .patient-card {
+      width: 90%;
+      margin: 15px 0;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 123, 255, 0.3);
+      backdrop-filter: blur(10px);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .patient-details {
+      flex-grow: 1;
+    }
+
+    .patient-name {
+      color: #0d47a1;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .reply-btn {
+      background-color: #2196f3;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .reply-btn:hover {
+      background-color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Doctor Chat</div>
+    <div class="nav-right">
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button>About</button>
+      <button>Services</button>
+      <button>Address</button>
+      <button>Logout</button>
+    </div>
+  </nav>
+
+  <div class="patient-list">
+    <div class="patient-card">
+      <div class="patient-details">
+        <div class="patient-name">John Doe</div>
+      </div>
+      <button class="reply-btn" onclick="startChat('John Doe')">Reply</button>
+    </div>
+
+    <div class="patient-card">
+      <div class="patient-details">
+        <div class="patient-name">Jane Smith</div>
+      </div>
+      <button class="reply-btn" onclick="startChat('Jane Smith')">Reply</button>
+    </div>
+
+    <div class="patient-card">
+      <div class="patient-details">
+        <div class="patient-name">Tom Hanks</div>
+      </div>
+      <button class="reply-btn" onclick="startChat('Tom Hanks')">Reply</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    function startChat(patientName) {
+      alert(`Starting chat with ${patientName}`);
+      // Here you would redirect to a chat page or open the chat modal with that patient
+    }
+  </script>
+
+</body>
+</html>

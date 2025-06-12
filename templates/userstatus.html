@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Appointment Status</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    :root {
+      --primary: #1976D2;
+      --primary-light: #42A5F5;
+      --primary-dark: #0D47A1;
+      --accent: #FF5722;
+      --success: #4CAF50;
+      --warning: #FFC107;
+      --pending: #FF9800;
+      --text-light: #FFFFFF;
+      --text-dark: #333333;
+      --bg-light: #F5F5F5;
+      --bg-dark: #E0E0E0;
+      --shadow-light: rgba(0, 123, 255, 0.1);
+      --shadow-medium: rgba(0, 123, 255, 0.2);
+      --shadow-dark: rgba(0, 123, 255, 0.3);
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.4;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: var(--primary-dark);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .nav-center {
+      color: var(--primary-dark);
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-icons {
+      display: flex;
+      margin-bottom: 5px;
+    }
+
+    .notification-icon {
+      position: relative;
+      color: var(--primary-dark);
+      font-size: 24px;
+      margin-right: 10px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .notification-icon:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: #f44336;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse-badge 1.5s infinite;
+    }
+
+    @keyframes pulse-badge {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+      }
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+      }
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-dark);
+      margin-top: 4px;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      overflow: hidden;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      padding: 15px;
+      border: none;
+      background: none;
+      text-align: left;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: var(--primary-dark);
+      font-weight: 500;
+      width: 200px;
+    }
+
+    .nav-menu button:hover {
+      background: #f0f7ff;
+      padding-left: 25px;
+    }
+
+    .page-title {
+      text-align: center;
+      padding: 30px 0;
+      color: var(--primary-dark);
+      font-size: 32px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      animation: fadeInDown 1s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .appointment-list {
+      margin: 20px auto;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 0 20px;
+      animation: fadeIn 1s ease-out 0.3s both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .appointment-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+      overflow: hidden;
+      transition: all 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .appointment-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 123, 255, 0.3);
+    }
+
+    .appointment-details {
+      flex-grow: 1;
+    }
+
+    .appointment-status {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .status-validation {
+      color: var(--pending);
+    }
+
+    .status-confirmed {
+      color: var(--success);
+    }
+
+    .status-cancelled {
+      color: #F44336;
+      font-weight: bold;
+    }
+
+    .status-completed {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+
+    .review-btn {
+      background-color: #FFC107;
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .review-btn:hover {
+      background-color: #FFB300;
+    }
+
+    .review-submitted {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      color: #4CAF50;
+      font-weight: 500;
+    }
+
+    .appointment-time {
+      font-size: 16px;
+      color: var(--text-dark);
+      margin-bottom: 5px;
+    }
+
+    .appointment-doctor {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .action-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+      background: var(--primary-dark);
+      transform: scale(1.05);
+    }
+
+    .no-appointments {
+      text-align: center;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+      color: var(--primary-dark);
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--primary-dark);
+      position: relative;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .appointment-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 15px;
+      }
+
+      .action-btn {
+        margin-top: 15px;
+        width: 100%;
+      }
+    }
+
+    .appointment-reassigned {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      border-radius: 4px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .appointment-reassigned i {
+      color: #2196f3;
+      font-size: 16px;
+    }
+
+    .appointment-notes {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #fff9c4;
+      border-left: 3px solid #ffc107;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .highlight-btn {
+      background-color: #4CAF50;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="animated-bg" id="animatedBg"></div>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">APPOINTMENT STATUS</div>
+    <div class="nav-right">
+      <div class="nav-icons">
+        <a href="/notifications" class="notification-icon" title="Notifications">
+          <i class="fas fa-bell"></i>
+          {% if unread_notifications > 0 %}
+          <span class="notification-badge">{{ unread_notifications }}</span>
+          {% endif %}
+        </a>
+      </div>
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='/userhome'">Dashboard</button>
+      <button onclick="window.location.href='/notifications'">Notifications</button>
+      <button onclick="window.location.href='/appointment'">Book Appointment</button>
+      <button onclick="window.location.href='/status'">Appointment Status</button>
+      <button onclick="window.location.href='/history'">Medical History</button>
+      <button onclick="window.location.href='/chat'">Chat with Doctor</button>
+      <button onclick="window.location.href='/gallery'">Gallery</button>
+      <button onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </nav>
+
+  <h1 class="page-title">Your Appointment Status</h1>
+
+  <!-- Replace the static appointment list with dynamic data -->
+  <div class="appointment-list">
+    {% if appointments %}
+      {% for appointment in appointments %}
+        <div class="appointment-card">
+          <div class="appointment-details">
+            {% if appointment.status == 'pending' %}
+              <div class="appointment-status status-validation">Awaiting Doctor Confirmation</div>
+              <div class="appointment-time">Requested for: {{ appointment.date }}</div>
+            {% elif appointment.status == 'confirmed' %}
+              <div class="appointment-status status-confirmed">Confirmed</div>
+              <div class="appointment-time">Date: {{ appointment.date }} | Time: {{ appointment.time }}</div>
+            {% elif appointment.status == 'completed' %}
+              <div class="appointment-status status-completed">Completed</div>
+              <div class="appointment-time">Date: {{ appointment.date }} | Time: {{ appointment.time }}</div>
+              {% if not appointment.has_review %}
+                <button class="action-btn review-btn" onclick="openReviewModal({{ appointment.id }}, '{{ appointment.doctor_name }}')">
+                  <i class="fas fa-star"></i> Review Dr. {{ appointment.doctor_name.split(' ')[0] }}
+                </button>
+              {% else %}
+                <div class="review-submitted">
+                  <i class="fas fa-check-circle"></i> Review submitted
+                </div>
+              {% endif %}
+            {% elif appointment.status == 'cancelled' and 'no longer available' in appointment.notes %}
+              <div class="appointment-status status-cancelled">Cancelled - Doctor No Longer Available</div>
+              <div class="appointment-time">Originally scheduled for: {{ appointment.date }}</div>
+              {% set user_notes = appointment.notes.split('[SYSTEM]')[0] %}
+              {% if user_notes.strip() %}
+                <div class="appointment-notes">{{ user_notes }}</div>
+              {% endif %}
+              <button class="action-btn highlight-btn" onclick="window.location.href='/appointment'">Book New Appointment</button>
+            {% elif appointment.status == 'cancelled' %}
+              <div class="appointment-status status-cancelled">Cancelled</div>
+              <div class="appointment-time">Originally scheduled for: {{ appointment.date }}</div>
+              <button class="action-btn" onclick="window.location.href='/appointment'">Book Again</button>
+            {% endif %}
+
+            {% if 'reassigned from Dr.' in appointment.notes %}
+              <div class="appointment-reassigned">
+                <i class="fas fa-exchange-alt"></i> This appointment was reassigned
+              </div>
+            {% endif %}
+
+            <div class="appointment-doctor">With {{ appointment.doctor_name }} ({{ appointment.doctor_specialty }})</div>
+            {% if appointment.notes %}
+              {% set user_notes = appointment.notes.split('[SYSTEM]')[0] %}
+              {% if user_notes.strip() %}
+                <div class="appointment-notes">Description: {{ user_notes }}</div>
+              {% endif %}
+            {% endif %}
+
+            {% if appointment.status == 'date_suggested' %}
+              <div class="appointment-date-suggested">
+                <i class="fas fa-calendar-alt"></i> New date/time suggested by reception
+
+                <!-- Extract suggested date and time from notes -->
+                {% set suggested_info = appointment.notes.split('Reception suggested new date/time on ')[1]|default('') %}
+                {% if suggested_info %}
+                  {% set date_time_info = suggested_info.split('. Reason:')[0]|default('') %}
+                  <div class="suggested-datetime">{{ date_time_info }}</div>
+
+                  <div class="suggestion-actions">
+                    <button class="action-btn accept-btn" onclick="respondToSuggestion({{ appointment.id }}, 'accept')">
+                      <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="action-btn suggest-btn" onclick="showSuggestAlternative({{ appointment.id }})">
+                      <i class="fas fa-exchange-alt"></i> Suggest Alternative
+                    </button>
+                    <button class="action-btn reject-btn" onclick="respondToSuggestion({{ appointment.id }}, 'reject')">
+                      <i class="fas fa-times"></i> Reject
+                    </button>
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <!-- Doctor rescheduled appointment section -->
+            {% if 'Doctor rescheduled your appointment to' in appointment.notes %}
+              <div class="appointment-date-suggested doctor-reschedule">
+                <i class="fas fa-user-md"></i> Dr. {{ appointment.doctor_name }} rescheduled your appointment
+
+                <!-- Extract rescheduled date and time from notes -->
+                {% set reschedule_info = appointment.notes.split('Doctor rescheduled your appointment to ')[1]|default('') %}
+                {% if reschedule_info %}
+                  {% set date_time_info = reschedule_info.split('. Reason:')[0]|default('') %}
+                  <div class="suggested-datetime">{{ date_time_info }}</div>
+
+                  <div class="suggestion-actions">
+                    <button class="action-btn accept-btn" onclick="respondToDoctorReschedule({{ appointment.id }}, 'accept')">
+                      <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="action-btn suggest-btn" onclick="showSuggestAlternative({{ appointment.id }})">
+                      <i class="fas fa-exchange-alt"></i> Suggest Alternative
+                    </button>
+                    <button class="action-btn reject-btn" onclick="respondToDoctorReschedule({{ appointment.id }}, 'reject')">
+                      <i class="fas fa-times"></i> Reject
+                    </button>
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-appointments">
+        <p>You don't have any appointments yet.</p>
+        <button class="action-btn" style="margin-top: 20px;" onclick="window.location.href='/appointment'">Book an Appointment</button>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Add a reschedule modal -->
+  <div id="rescheduleModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+      <span class="close" onclick="closeRescheduleModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+      <h2 style="margin-bottom: 20px; color: var(--primary-dark);">Reschedule Appointment</h2>
+
+      <input type="hidden" id="appointmentId">
+
+      <div style="margin-bottom: 15px;">
+        <label for="newDate" style="display: block; margin-bottom: 5px; font-weight: 500;">New Date:</label>
+        <input type="date" id="newDate" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="newTime" style="display: block; margin-bottom: 5px; font-weight: 500;">New Time:</label>
+        <select id="newTime" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+          <option value="">Select a time</option>
+          <option value="09:00 AM">09:00 AM</option>
+          <option value="10:00 AM">10:00 AM</option>
+          <option value="11:00 AM">11:00 AM</option>
+          <option value="12:00 PM">12:00 PM</option>
+          <option value="02:00 PM">02:00 PM</option>
+          <option value="03:00 PM">03:00 PM</option>
+          <option value="04:00 PM">04:00 PM</option>
+          <option value="05:00 PM">05:00 PM</option>
+        </select>
+      </div>
+
+      <div id="rescheduleError" style="color: #F44336; margin-bottom: 15px; display: none;"></div>
+
+      <button onclick="submitReschedule()" style="background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; width: 100%;">Confirm Reschedule</button>
+    </div>
+  </div>
+
+  <!-- Add a review modal -->
+  <div id="reviewModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Review Your Appointment</h2>
+        <span class="close-modal" onclick="closeReviewModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="review-appointment-id">
+
+        <div class="doctor-name-display">
+          <p>How was your experience with <span id="doctor-name"></span>?</p>
+        </div>
+
+        <div class="rating-container">
+          <div class="star-rating">
+            <span class="star" data-rating="1" onclick="selectRating(1)"><i class="far fa-star"></i></span>
+            <span class="star" data-rating="2" onclick="selectRating(2)"><i class="far fa-star"></i></span>
+            <span class="star" data-rating="3" onclick="selectRating(3)"><i class="far fa-star"></i></span>
+            <span class="star" data-rating="4" onclick="selectRating(4)"><i class="far fa-star"></i></span>
+            <span class="star" data-rating="5" onclick="selectRating(5)"><i class="far fa-star"></i></span>
+          </div>
+          <div class="rating-text">Select a rating</div>
+        </div>
+
+        <div class="form-group">
+          <label for="review-text">Comments (Optional):</label>
+          <textarea id="review-text" class="form-input" rows="4" placeholder="Share your experience..."></textarea>
+        </div>
+
+        <div id="review-error" class="error-message"></div>
+
+        <div class="form-actions">
+          <button class="cancel-btn" onclick="closeReviewModal()">Cancel</button>
+          <button class="submit-btn" onclick="submitReview()">Submit Review</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add a modal for suggesting an alternative date -->
+  <div id="suggestAlternativeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Suggest Alternative Date/Time</h2>
+        <span class="close-modal" onclick="closeSuggestModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="current-appointment-id">
+
+        <div class="form-group">
+          <label for="alternative-date">Preferred Date:</label>
+          <input type="date" id="alternative-date" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="alternative-time">Preferred Time:</label>
+          <select id="alternative-time" class="form-input" required>
+            <option value="">Select Time</option>
+            <option value="09:00 AM">09:00 AM</option>
+            <option value="09:30 AM">09:30 AM</option>
+            <option value="10:00 AM">10:00 AM</option>
+            <option value="10:30 AM">10:30 AM</option>
+            <option value="11:00 AM">11:00 AM</option>
+            <option value="11:30 AM">11:30 AM</option>
+            <option value="12:00 PM">12:00 PM</option>
+            <option value="12:30 PM">12:30 PM</option>
+            <option value="02:00 PM">02:00 PM</option>
+            <option value="02:30 PM">02:30 PM</option>
+            <option value="03:00 PM">03:00 PM</option>
+            <option value="03:30 PM">03:30 PM</option>
+            <option value="04:00 PM">04:00 PM</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="alternative-reason">Reason (Optional):</label>
+          <textarea id="alternative-reason" class="form-input" rows="3" placeholder="Why do you prefer this date/time?"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="cancel-btn" onclick="closeSuggestModal()">Cancel</button>
+          <button class="submit-btn" onclick="submitAlternativeSuggestion()">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add CSS for the new elements -->
+  <style>
+    .appointment-date-suggested {
+      background-color: #e0f7fa;
+      border-left: 3px solid #00bcd4;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+
+    .doctor-reschedule {
+      background-color: #e8f5e9;
+      border-left: 3px solid #4caf50;
+    }
+
+    .doctor-reschedule i {
+      color: #4caf50;
+    }
+
+    .doctor-reschedule .suggested-datetime {
+      color: #2e7d32;
+    }
+
+    .suggested-datetime {
+      font-weight: bold;
+      margin: 8px 0;
+      color: #0097a7;
+    }
+
+    .suggestion-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .accept-btn {
+      background-color: #4caf50;
+    }
+
+    .suggest-btn {
+      background-color: #2196f3;
+    }
+
+    .reject-btn {
+      background-color: #f44336;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 0;
+      width: 500px;
+      max-width: 90%;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      padding: 15px 20px;
+      background-color: #f5f5f5;
+      border-radius: 10px 10px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-modal {
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .cancel-btn {
+      padding: 8px 15px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .submit-btn {
+      padding: 8px 15px;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* Review modal specific styles */
+    .doctor-name-display {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .doctor-name-display span {
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .rating-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .star {
+      font-size: 30px;
+      color: #FFD700;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .star:hover {
+      transform: scale(1.2);
+    }
+
+    .star.selected i {
+      font-weight: 900;
+    }
+
+    .rating-text {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .error-message {
+      color: #F44336;
+      margin: 10px 0;
+      font-size: 14px;
+      display: none;
+    }
+  </style>
+
+  <footer>
+    <p>&copy; 2023 AURA Dental Hospital. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    function cancelAppointment(id) {
+      if (confirm("Are you sure you want to cancel this appointment?")) {
+        fetch(`/api/cancel_appointment/${id}`, {
+          method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert("Appointment cancelled successfully.");
+            window.location.reload();
+          } else {
+            alert(data.message || "Failed to cancel appointment. Please try again.");
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert("An error occurred. Please try again.");
+        });
+      }
+    }
+
+    function rescheduleAppointment(id) {
+      document.getElementById('appointmentId').value = id;
+
+      // Set minimum date to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowFormatted = tomorrow.toISOString().split('T')[0];
+      document.getElementById('newDate').min = tomorrowFormatted;
+
+      // Show the modal
+      document.getElementById('rescheduleModal').style.display = 'block';
+    }
+
+    function closeRescheduleModal() {
+      document.getElementById('rescheduleModal').style.display = 'none';
+      document.getElementById('newDate').value = '';
+      document.getElementById('newTime').value = '';
+      document.getElementById('rescheduleError').style.display = 'none';
+    }
+
+    function submitReschedule() {
+      const appointmentId = document.getElementById('appointmentId').value;
+      const date = document.getElementById('newDate').value;
+      const time = document.getElementById('newTime').value;
+
+      // Validate inputs
+      if (!date || !time) {
+        document.getElementById('rescheduleError').innerText = 'Please select both date and time';
+        document.getElementById('rescheduleError').style.display = 'block';
+        return;
+      }
+
+      // Send reschedule request to server
+      fetch(`/api/reschedule_appointment/${appointmentId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: date,
+          time: time
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Appointment rescheduled successfully! The new time is pending approval.');
+          closeRescheduleModal();
+          window.location.reload();
+        } else {
+          document.getElementById('rescheduleError').innerText = data.message || 'Failed to reschedule appointment. Please try again.';
+          document.getElementById('rescheduleError').style.display = 'block';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('rescheduleError').innerText = 'An error occurred. Please try again.';
+        document.getElementById('rescheduleError').style.display = 'block';
+      });
+    }
+
+    function rebookAppointment(id) {
+      window.location.href = '/appointment';
+    }
+
+    function respondToSuggestion(appointmentId, response) {
+      if (response === 'reject' && !confirm('Are you sure you want to reject this suggested date/time?')) {
+        return;
+      }
+
+      fetch('/api/respond_to_suggestion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          response: response
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(response === 'accept' ?
+                'You have accepted the suggested appointment time!' :
+                'You have rejected the suggested appointment time.');
+          window.location.reload();
+        } else {
+          // If there's an error but it's related to accepting, show a more helpful message
+          if (response === 'accept' && data.message) {
+            if (data.message.includes('parsing date')) {
+              // This is a date parsing error, show a more friendly message
+              alert('Your appointment has been accepted, but there was an issue with the date format. Please contact reception if needed.');
+              window.location.reload();
+            } else {
+              alert(data.message || 'Failed to process your response. Please try again.');
+            }
+          } else {
+            alert(data.message || 'Failed to process your response. Please try again.');
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        if (response === 'accept') {
+          // Even if there's an error, try to be helpful
+          alert('There was an issue accepting the appointment. Please contact reception for assistance.');
+        } else {
+          alert('An error occurred. Please try again.');
+        }
+      });
+    }
+
+    function respondToDoctorReschedule(appointmentId, response) {
+      if (response === 'reject' && !confirm('Are you sure you want to reject this rescheduled appointment?')) {
+        return;
+      }
+
+      fetch('/api/respond_to_doctor_reschedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          response: response
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(response === 'accept' ?
+                'You have accepted the rescheduled appointment time!' :
+                'You have rejected the rescheduled appointment time.');
+          window.location.reload();
+        } else {
+          // If there's an error but it's related to accepting, show a more helpful message
+          if (response === 'accept' && data.message) {
+            if (data.message.includes('parsing date')) {
+              // This is a date parsing error, show a more friendly message
+              alert('Your appointment has been accepted, but there was an issue with the date format. Please contact reception if needed.');
+              window.location.reload();
+            } else {
+              alert(data.message || 'Failed to process your response. Please try again.');
+            }
+          } else {
+            alert(data.message || 'Failed to process your response. Please try again.');
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        if (response === 'accept') {
+          // Even if there's an error, try to be helpful
+          alert('There was an issue accepting the appointment. Please contact reception for assistance.');
+        } else {
+          alert('An error occurred. Please try again.');
+        }
+      });
+    }
+
+    function showSuggestAlternative(appointmentId) {
+      document.getElementById('current-appointment-id').value = appointmentId;
+
+      // Set minimum date to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowFormatted = tomorrow.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      document.getElementById('alternative-date').min = tomorrowFormatted;
+
+      // Show the modal
+      document.getElementById('suggestAlternativeModal').style.display = 'block';
+    }
+
+    function closeSuggestModal() {
+      document.getElementById('suggestAlternativeModal').style.display = 'none';
+      document.getElementById('alternative-date').value = '';
+      document.getElementById('alternative-time').value = '';
+      document.getElementById('alternative-reason').value = '';
+    }
+
+    function submitAlternativeSuggestion() {
+      const appointmentId = document.getElementById('current-appointment-id').value;
+      const alternativeDate = document.getElementById('alternative-date').value;
+      const alternativeTime = document.getElementById('alternative-time').value;
+      const reason = document.getElementById('alternative-reason').value;
+
+      if (!alternativeDate || !alternativeTime) {
+        alert('Please select both a date and time');
+        return;
+      }
+
+      fetch('/api/suggest_alternative', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          alternative_date: alternativeDate,
+          alternative_time: alternativeTime,
+          reason: reason
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Your alternative suggestion has been sent!');
+          closeSuggestModal();
+          window.location.reload();
+        } else {
+          alert(data.message || 'Failed to send your suggestion. Please try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      });
+    }
+
+    // Create animated background
+    function createAnimatedBackground() {
+      const bg = document.getElementById('animatedBg');
+      const colors = ['#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6'];
+
+      for (let i = 0; i < 50; i++) {
+        const circle = document.createElement('div');
+        const size = Math.random() * 100 + 50;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        circle.style.position = 'absolute';
+        circle.style.width = `${size}px`;
+        circle.style.height = `${size}px`;
+        circle.style.borderRadius = '50%';
+        circle.style.background = color;
+        circle.style.opacity = '0.3';
+        circle.style.left = `${Math.random() * 100}%`;
+        circle.style.top = `${Math.random() * 100}%`;
+        circle.style.transform = 'scale(0)';
+        circle.style.animation = `pulse ${Math.random() * 10 + 5}s infinite alternate`;
+
+        bg.appendChild(circle);
+      }
+
+      // Add keyframes for the pulse animation
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes pulse {
+          0% { transform: scale(0); opacity: 0.1; }
+          100% { transform: scale(1); opacity: 0.3; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Function to check for new notifications
+    function checkNotifications() {
+      fetch('/api/notifications/count')
+        .then(response => response.json())
+        .then(data => {
+          updateNotificationBadges(data.count);
+        })
+        .catch(error => console.error('Error checking notifications:', error));
+    }
+
+    // Function to update notification badges
+    function updateNotificationBadges(count) {
+      // Update the notification icon badge
+      const navBadge = document.querySelector('.notification-icon .notification-badge');
+
+      if (count > 0) {
+        // If badge doesn't exist, create it
+        if (!navBadge) {
+          const navIcon = document.querySelector('.notification-icon');
+          if (navIcon) {
+            const badge = document.createElement('span');
+            badge.className = 'notification-badge';
+            badge.textContent = count;
+            navIcon.appendChild(badge);
+          }
+        } else {
+          // Update existing badge
+          navBadge.textContent = count;
+        }
+      } else {
+        // Remove badge if count is 0
+        if (navBadge) navBadge.remove();
+      }
+    }
+
+    // Review modal functions
+    let selectedRating = 0;
+
+    function openReviewModal(appointmentId, doctorName) {
+      document.getElementById('review-appointment-id').value = appointmentId;
+      document.getElementById('doctor-name').textContent = 'Dr. ' + doctorName;
+      document.getElementById('reviewModal').style.display = 'block';
+      document.getElementById('review-text').value = '';
+      document.getElementById('review-error').style.display = 'none';
+
+      // Reset stars
+      selectedRating = 0;
+      const stars = document.querySelectorAll('.star-rating .star');
+      stars.forEach(star => {
+        star.classList.remove('selected');
+        star.querySelector('i').className = 'far fa-star';
+      });
+      document.querySelector('.rating-text').textContent = 'Select a rating';
+    }
+
+    function closeReviewModal() {
+      document.getElementById('reviewModal').style.display = 'none';
+    }
+
+    function selectRating(rating) {
+      selectedRating = rating;
+      const stars = document.querySelectorAll('.star-rating .star');
+      const ratingText = document.querySelector('.rating-text');
+
+      // Update rating text based on selection
+      const ratingTexts = [
+        '',
+        'Poor',
+        'Fair',
+        'Good',
+        'Very Good',
+        'Excellent'
+      ];
+
+      ratingText.textContent = ratingTexts[rating];
+
+      // Update stars
+      stars.forEach((star, index) => {
+        const starIcon = star.querySelector('i');
+        if (index < rating) {
+          star.classList.add('selected');
+          starIcon.className = 'fas fa-star';
+        } else {
+          star.classList.remove('selected');
+          starIcon.className = 'far fa-star';
+        }
+      });
+    }
+
+    function submitReview() {
+      const appointmentId = document.getElementById('review-appointment-id').value;
+      const reviewText = document.getElementById('review-text').value;
+      const errorElement = document.getElementById('review-error');
+
+      // Validate rating
+      if (selectedRating === 0) {
+        errorElement.textContent = 'Please select a rating';
+        errorElement.style.display = 'block';
+        return;
+      }
+
+      // Submit the review
+      fetch('/api/submit_review', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          rating: selectedRating,
+          review_text: reviewText
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Thank you for your review!');
+          closeReviewModal();
+          window.location.reload();
+        } else {
+          errorElement.textContent = data.message || 'Failed to submit review. Please try again.';
+          errorElement.style.display = 'block';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        errorElement.textContent = 'An error occurred. Please try again.';
+        errorElement.style.display = 'block';
+      });
+    }
+
+    // Initialize animation when page loads
+    window.onload = function() {
+      createAnimatedBackground();
+      // Start checking for new notifications
+      checkNotifications();
+      setInterval(checkNotifications, 30000); // Check every 30 seconds
+    };
+  </script>
+</body>
+</html>

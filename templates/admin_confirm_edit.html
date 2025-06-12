@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Changes - AURA Hospital Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1565C0;
+            --secondary-color: #0D47A1;
+            --accent-color: #E3F2FD;
+            --text-color: #333;
+            --light-text: #757575;
+            --danger-color: #F44336;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logout-btn:hover {
+            background-color: var(--danger-color);
+        }
+        
+        .logout-btn i {
+            margin-right: 10px;
+        }
+        
+        /* Main content styles */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        .back-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-link i {
+            margin-right: 5px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Confirmation styles */
+        .confirm-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .confirm-title {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .confirm-message {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--accent-color);
+            border-radius: 5px;
+            color: var(--primary-color);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .comparison-table th, .comparison-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-table th {
+            font-weight: 600;
+            color: var(--light-text);
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .field-name {
+            font-weight: 500;
+        }
+        
+        .old-value {
+            color: var(--danger-color);
+        }
+        
+        .new-value {
+            color: var(--success-color);
+        }
+        
+        .no-change {
+            color: var(--light-text);
+            font-style: italic;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .cancel-btn {
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .cancel-btn i {
+            margin-right: 5px;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .confirm-btn {
+            padding: 10px 20px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .confirm-btn i {
+            margin-right: 5px;
+        }
+        
+        .confirm-btn:hover {
+            background-color: #388E3C;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>AURA Admin</h2>
+                <p>Hospital Management</p>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="{{ url_for('admin_patients') }}" class="menu-item {% if edit_type == 'patient' %}active{% endif %}">
+                    <i class="fas fa-users"></i> Patients
+                </a>
+                <a href="{{ url_for('admin_doctors') }}" class="menu-item {% if edit_type == 'doctor' %}active{% endif %}">
+                    <i class="fas fa-user-md"></i> Doctors
+                </a>
+            </div>
+            
+            <a href="{{ url_for('admin_logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Confirm Changes</h1>
+                <a href="{{ url_for('edit_' + edit_type, **{edit_type + '_id': original.id}) }}" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Edit Form
+                </a>
+            </div>
+            
+            <div class="confirm-container">
+                <h2 class="confirm-title">Review Your Changes</h2>
+                
+                <div class="confirm-message">
+                    <i class="fas fa-info-circle"></i> Please review the changes below before confirming. Only the fields that have been modified are shown.
+                </div>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Current Value</th>
+                            <th>New Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in preview.items() %}
+                            {% if key != 'id' and original[key]|string != value|string %}
+                                <tr>
+                                    <td class="field-name">{{ key|replace('_', ' ')|title }}</td>
+                                    <td class="old-value">{{ original[key] }}</td>
+                                    <td class="new-value">{{ value }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if edit_type == 'patient' %}
+                            {% set fields = ['name', 'email', 'phone', 'gender', 'age', 'address', 'password'] %}
+                        {% elif edit_type == 'doctor' %}
+                            {% set fields = ['name', 'email', 'phone', 'specialty', 'qualification', 'experience', 'available_days', 'fee'] %}
+                        {% endif %}
+                        
+                        {% set has_changes = false %}
+                        {% for field in fields %}
+                            {% if original[field]|string != preview[field]|string %}
+                                {% set has_changes = true %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if not has_changes %}
+                            <tr>
+                                <td colspan="3" class="no-change">No changes detected</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                
+                <form method="POST" action="{{ url_for('edit_' + edit_type, **{edit_type + '_id': original.id}) }}">
+                    <!-- Hidden fields to carry over the form data -->
+                    {% for key, value in preview.items() %}
+                        {% if key != 'id' %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <div class="form-actions">
+                        <a href="{{ url_for('edit_' + edit_type, **{edit_type + '_id': original.id}) }}" class="cancel-btn">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" name="confirm" class="confirm-btn">
+                            <i class="fas fa-check"></i> Confirm Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

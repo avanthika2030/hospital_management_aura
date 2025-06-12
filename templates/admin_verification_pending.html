@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Pending - AURA Hospital Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1565C0;
+            --secondary-color: #0D47A1;
+            --accent-color: #E3F2FD;
+            --text-color: #333;
+            --light-text: #757575;
+            --danger-color: #F44336;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .verification-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .verification-header {
+            margin-bottom: 30px;
+        }
+        
+        .verification-header h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .verification-header p {
+            color: var(--light-text);
+            font-size: 16px;
+        }
+        
+        .verification-icon {
+            font-size: 64px;
+            color: var(--warning-color);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .verification-message {
+            margin-bottom: 30px;
+        }
+        
+        .verification-message h2 {
+            font-size: 24px;
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+        
+        .verification-message p {
+            color: var(--light-text);
+            margin-bottom: 10px;
+        }
+        
+        .verification-status {
+            background-color: var(--accent-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .cancel-btn {
+            display: inline-block;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(21, 101, 192, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="verification-header">
+            <i class="fas fa-envelope verification-icon"></i>
+            <h1>AURA Hospital</h1>
+            <p>Admin Verification</p>
+        </div>
+        
+        <div class="verification-message">
+            <h2>Verification Email Sent</h2>
+            <p>We've sent a verification email to:</p>
+            <p><strong>{{ ADMIN_NOTIFICATION_EMAIL }}</strong></p>
+            <p>Please check your email and click the "Approve" button to continue.</p>
+        </div>
+        
+        <div class="loading-spinner"></div>
+        
+        <div class="verification-status" id="verificationStatus">
+            Waiting for verification...
+        </div>
+        
+        <a href="{{ url_for('admin_login') }}" class="cancel-btn">Cancel</a>
+    </div>
+    
+    <script>
+        // Poll the server to check verification status
+        function checkVerificationStatus() {
+            fetch('/admin/verify/check')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'approved') {
+                        document.getElementById('verificationStatus').textContent = 'Verification approved! Redirecting...';
+                        document.getElementById('verificationStatus').style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+                        document.getElementById('verificationStatus').style.color = '#4CAF50';
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 2000);
+                    } else if (data.status === 'rejected') {
+                        document.getElementById('verificationStatus').textContent = 'Verification rejected. Redirecting...';
+                        document.getElementById('verificationStatus').style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                        document.getElementById('verificationStatus').style.color = '#F44336';
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 2000);
+                    } else if (data.status === 'expired') {
+                        document.getElementById('verificationStatus').textContent = 'Verification expired. Please try again.';
+                        document.getElementById('verificationStatus').style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                        document.getElementById('verificationStatus').style.color = '#F44336';
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 2000);
+                    } else if (data.status === 'error') {
+                        document.getElementById('verificationStatus').textContent = data.message;
+                        document.getElementById('verificationStatus').style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                        document.getElementById('verificationStatus').style.color = '#F44336';
+                    } else {
+                        // Still pending, continue polling
+                        setTimeout(checkVerificationStatus, 3000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking verification status:', error);
+                    document.getElementById('verificationStatus').textContent = 'Error checking status. Please try again.';
+                    document.getElementById('verificationStatus').style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                    document.getElementById('verificationStatus').style.color = '#F44336';
+                });
+        }
+        
+        // Start polling when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkVerificationStatus, 3000);
+        });
+    </script>
+</body>
+</html>

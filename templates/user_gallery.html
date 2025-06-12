@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Photo Gallery - AURA Hospital</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_common.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Gallery specific styles */
+    .gallery-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .gallery-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .gallery-item {
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .gallery-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-info {
+      padding: 15px;
+    }
+
+    .gallery-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .gallery-desc {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .gallery-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #888;
+    }
+
+    .pending-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: var(--warning);
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 10;
+    }
+
+    .upload-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .upload-btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      overflow: auto;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background-color: white;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 100%;
+      padding: 30px;
+      position: relative;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #888;
+      transition: color 0.2s;
+    }
+
+    .close-modal:hover {
+      color: var(--danger);
+    }
+
+    .modal-title {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--primary-light);
+      color: white;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: #888;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #ddd;
+    }
+
+    .empty-state p {
+      font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+    }
+
+    @media (max-width: 576px) {
+      .gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="animated-bg" id="animatedBg"></div>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Photo Gallery</div>
+    <div class="nav-right">
+      <div class="nav-icons">
+        <a href="/notifications" class="notification-icon" title="Notifications">
+          <i class="fas fa-bell"></i>
+          {% if unread_notifications > 0 %}
+          <span class="notification-badge">{{ unread_notifications }}</span>
+          {% endif %}
+        </a>
+      </div>
+      <img src="/static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='/userhome'">Dashboard</button>
+      <button onclick="window.location.href='/notifications'">Notifications</button>
+      <button onclick="window.location.href='/appointment'">Book Appointment</button>
+      <button onclick="window.location.href='/status'">Appointment Status</button>
+      <button onclick="window.location.href='/history'">Medical History</button>
+      <button onclick="window.location.href='/chat'">Chat</button>
+      <button onclick="window.location.href='/gallery'" class="active">Gallery</button>
+      <button onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </nav>
+
+  <div class="dashboard">
+    <div class="gallery-container">
+      <div class="gallery-header">
+        <h1 class="gallery-title">Photo Gallery</h1>
+        <button class="upload-btn" onclick="openUploadModal()">
+          <i class="fas fa-upload"></i>
+          <span>Upload Photo</span>
+        </button>
+      </div>
+
+      <div class="gallery-grid" id="galleryGrid">
+        <!-- Gallery items will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal" id="uploadModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeUploadModal()">&times;</span>
+      <h2 class="modal-title">Upload New Photo</h2>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label" for="title">Title (optional)</label>
+          <input type="text" id="title" name="title" class="form-input" placeholder="Enter a title for your photo">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="description">Description (optional)</label>
+          <textarea id="description" name="description" class="form-input form-textarea" placeholder="Add a description for your photo"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="photo">Photo</label>
+          <input type="file" id="photo" name="photo" class="form-input" accept="image/*" capture="environment" required>
+          <small style="display: block; margin-top: 5px; color: #666;">You can select from gallery or take a new photo</small>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="closeUploadModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2023 AURA Hospital. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Load gallery items
+    function loadGallery() {
+      fetch('/api/gallery')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const galleryGrid = document.getElementById('galleryGrid');
+            galleryGrid.innerHTML = '';
+
+            if (data.photos.length === 0) {
+              galleryGrid.innerHTML = `
+                <div class="empty-state">
+                  <i class="fas fa-images"></i>
+                  <p>No photos in the gallery yet. Be the first to upload!</p>
+                </div>
+              `;
+              return;
+            }
+
+            data.photos.forEach(photo => {
+              const item = document.createElement('div');
+              item.className = 'gallery-item';
+
+              let html = `
+                <img src="${photo.image_path}" alt="${photo.title || 'Gallery Image'}" class="gallery-img">
+                <div class="gallery-info">
+                  ${photo.title ? `<h3 class="gallery-title">${photo.title}</h3>` : ''}
+                  ${photo.description ? `<p class="gallery-desc">${photo.description}</p>` : ''}
+                  <div class="gallery-meta">
+                    <span>${photo.uploaded_by_type === 'reception' ? 'By: Hospital Staff' : ''}</span>
+                    <span>Uploaded: ${new Date(photo.upload_date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              `;
+
+              if (!photo.approved && photo.uploaded_by_id == {{ user_id }}) {
+                html += '<div class="pending-badge">Pending Approval</div>';
+              }
+
+              item.innerHTML = html;
+              galleryGrid.appendChild(item);
+            });
+          } else {
+            alert('Failed to load gallery: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading gallery:', error);
+          alert('An error occurred while loading the gallery. Please try again.');
+        });
+    }
+
+    // Open upload modal
+    function openUploadModal() {
+      document.getElementById('uploadModal').style.display = 'flex';
+    }
+
+    // Close upload modal
+    function closeUploadModal() {
+      document.getElementById('uploadModal').style.display = 'none';
+      document.getElementById('uploadForm').reset();
+    }
+
+    // Handle form submission
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append('title', document.getElementById('title').value);
+      formData.append('description', document.getElementById('description').value);
+
+      const photoFile = document.getElementById('photo').files[0];
+      if (!photoFile) {
+        alert('Please select a photo to upload');
+        return;
+      }
+
+      // Check file size (max 5MB)
+      if (photoFile.size > 5 * 1024 * 1024) {
+        alert('Photo size exceeds 5MB. Please choose a smaller image.');
+        return;
+      }
+
+      formData.append('photo', photoFile);
+
+      // Show loading state
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+      submitBtn.disabled = true;
+
+      fetch('/api/gallery/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Photo uploaded successfully! It will be visible after approval by reception staff.');
+          closeUploadModal();
+          loadGallery();
+        } else {
+          alert('Failed to upload photo: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error uploading photo:', error);
+        alert('An error occurred while uploading the photo. Please try again.');
+      })
+      .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      });
+    });
+
+    // Toggle menu for mobile view
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      if (menu) {
+        menu.classList.toggle('show');
+      } else {
+        console.error('Navigation menu element not found');
+      }
+    }
+
+    // Create animated background
+    function createAnimatedBackground() {
+      const bg = document.getElementById('animatedBg');
+      const colors = ['#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6'];
+
+      for (let i = 0; i < 50; i++) {
+        const circle = document.createElement('div');
+        const size = Math.random() * 100 + 50;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        circle.style.position = 'absolute';
+        circle.style.width = `${size}px`;
+        circle.style.height = `${size}px`;
+        circle.style.borderRadius = '50%';
+        circle.style.background = color;
+        circle.style.opacity = '0.3';
+        circle.style.left = `${Math.random() * 100}%`;
+        circle.style.top = `${Math.random() * 100}%`;
+        circle.style.transform = 'scale(0)';
+        circle.style.animation = `pulse ${Math.random() * 10 + 5}s infinite alternate`;
+
+        bg.appendChild(circle);
+      }
+
+      // Add keyframes for the pulse animation
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes pulse {
+          0% { transform: scale(0); opacity: 0.1; }
+          100% { transform: scale(1); opacity: 0.3; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadGallery();
+      createAnimatedBackground();
+    });
+  </script>
+</body>
+</html>

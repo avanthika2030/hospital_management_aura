@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reception Chat - AURA Hospital</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/reception_common.css') }}">
+  <style>
+    /* Chat specific styles */
+    .dashboard-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .chat-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      margin-left: 280px;
+    }
+
+    .chat-sidebar {
+      width: 300px;
+      background-color: var(--white);
+      border-right: 1px solid var(--primary-light);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 10px var(--shadow);
+    }
+
+    .chat-sidebar-header {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--primary-light);
+      background-color: var(--white);
+    }
+
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 18px;
+      transition: color 0.3s;
+    }
+
+    .action-btn:hover {
+      color: var(--primary-dark);
+      transform: rotate(15deg);
+    }
+
+    .search-container {
+      padding: 15px;
+      border-bottom: 1px solid var(--primary-light);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 15px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid #e2e8f0;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+    .patient-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+
+    .patient-item {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .patient-item:hover {
+      background-color: var(--primary-light);
+    }
+
+    .patient-item.active {
+      background-color: var(--primary-light);
+      border-left: 4px solid var(--primary);
+    }
+
+    .patient-name {
+      font-weight: 600;
+      margin-bottom: 3px;
+      color: var(--dark);
+    }
+
+    .patient-preview {
+      font-size: 13px;
+      color: var(--gray);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 230px;
+    }
+
+    .unread-badge {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      background-color: var(--primary);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 600;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #f1f5f9;
+    }
+
+    .chat-header {
+      padding: 20px;
+      background-color: var(--white);
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+
+    .patient-info h3 {
+      font-size: 18px;
+      margin-bottom: 3px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .patient-info p {
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .chat-actions button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 18px;
+      margin-left: 15px;
+      transition: color 0.3s;
+    }
+
+    .chat-actions button:hover {
+      color: var(--primary-dark);
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 75%;
+    }
+
+    .message.reception {
+      align-self: flex-end;
+    }
+
+    .message.user {
+      align-self: flex-start;
+    }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px var(--shadow);
+      word-break: break-word;
+      position: relative;
+    }
+
+    .message.reception .message-bubble {
+      background-color: var(--primary);
+      color: var(--white);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.user .message-bubble {
+      background-color: var(--white);
+      color: var(--dark);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-actions {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: none;
+    }
+
+    .message:hover .message-actions {
+      display: block;
+    }
+
+    .delete-message {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+
+    .message.user .delete-message {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    .delete-message:hover {
+      background-color: rgba(255, 0, 0, 0.2);
+      color: #fff;
+    }
+
+    .message.user .delete-message:hover {
+      background-color: rgba(255, 0, 0, 0.1);
+      color: #ff3333;
+    }
+
+    .deleted-message {
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    .message-time {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 4px;
+      align-self: flex-end;
+    }
+
+    .message.user .message-time {
+      align-self: flex-start;
+    }
+
+    .chat-input {
+      padding: 15px;
+      background-color: var(--white);
+      border-top: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 -2px 10px var(--shadow);
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: var(--border-radius-md);
+      border: 1px solid #e2e8f0;
+      outline: none;
+      font-size: 15px;
+      transition: all 0.3s;
+    }
+
+    .message-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+    .send-btn {
+      background-color: var(--primary);
+      color: var(--white);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-left: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .send-btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--gray);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .empty-state i {
+      font-size: 60px;
+      color: var(--primary-light);
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .empty-state p {
+      font-size: 15px;
+      max-width: 400px;
+    }
+
+    .attachment-preview {
+      max-width: 300px;
+      max-height: 300px;
+      border-radius: var(--border-radius-sm);
+      margin-top: 8px;
+      object-fit: contain;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+    }
+
+    .attachment-container {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .attachment-link {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--border-radius-sm);
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .attachment-link i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
+    .attachment-link:hover {
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-preview {
+      width: 100%;
+      max-width: 500px;
+      height: 400px;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--border-radius-sm);
+      margin-top: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .video-preview {
+      width: 100%;
+      max-width: 400px;
+      max-height: 300px;
+      border-radius: var(--border-radius-sm);
+      margin-top: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .audio-preview {
+      width: 100%;
+      max-width: 300px;
+      margin-top: 8px;
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 1024px) {
+      .chat-content {
+        margin-left: 80px;
+      }
+    }
+
+    /* Search results dropdown */
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: white;
+      border-radius: var(--border-radius-sm);
+      box-shadow: 0 4px 12px var(--shadow);
+      z-index: 100;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .search-results.active {
+      display: block;
+    }
+
+    .search-result-item {
+      padding: 10px 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .search-result-item:hover {
+      background-color: var(--primary-light);
+    }
+
+    .search-result-item .patient-name {
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .search-result-item .patient-details {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .no-results {
+      padding: 15px;
+      text-align: center;
+      color: var(--gray);
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .chat-content {
+        margin-left: 70px;
+      }
+
+      .chat-sidebar {
+        width: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo">
+        <h3>AURA Hospital</h3>
+        <p>Reception Portal</p>
+      </div>
+      <div class="sidebar-menu">
+        <a href="{{ url_for('reception_dashboard') }}">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('reception_appointments') }}">
+          <i class="fas fa-calendar-check"></i>
+          <span>Appointments</span>
+        </a>
+        <a href="{{ url_for('reception_patients') }}">
+          <i class="fas fa-user-injured"></i>
+          <span>Patients</span>
+        </a>
+        <a href="{{ url_for('reception_doctors') }}">
+          <i class="fas fa-user-md"></i>
+          <span>Doctors</span>
+        </a>
+        <a href="{{ url_for('reception_chat') }}" class="active">
+          <i class="fas fa-comments"></i>
+          <span>Patient Chat</span>
+        </a>
+        <a href="{{ url_for('reception_gallery') }}">
+          <i class="fas fa-images"></i>
+          <span>Gallery</span>
+        </a>
+        <a href="{{ url_for('consultation_history') }}">
+          <i class="fas fa-history"></i>
+          <span>Consultation History</span>
+        </a>
+        <a href="{{ url_for('reception_logout') }}">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Chat Content -->
+    <div class="chat-content">
+      <div class="chat-sidebar">
+        <div class="chat-sidebar-header">
+          <div class="sidebar-title">Patient Conversations</div>
+          <button class="action-btn" onclick="refreshPatientList()">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+
+        <div class="search-container">
+          <input type="text" class="search-input" placeholder="Search existing conversations..." id="searchInput" oninput="filterPatients()">
+        </div>
+
+        <div class="search-container" style="border-top: none; padding-top: 0;">
+          <div style="position: relative;">
+            <input type="text" class="search-input" placeholder="Find new patient by name..." id="newPatientSearchInput" oninput="searchNewPatients()" autocomplete="off">
+            <div id="searchResults" class="search-results"></div>
+          </div>
+        </div>
+
+        <div class="patient-list" id="patientList">
+          <!-- Patient list will be populated dynamically -->
+        </div>
+      </div>
+
+      <div class="chat-container" id="chatContainer">
+        <div class="empty-state">
+          <i class="fas fa-comments"></i>
+          <h3>No conversation selected</h3>
+          <p>Select a patient from the list to start chatting</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentPatientId = null;
+    let patients = [];
+    let lastCheckTime = new Date().toISOString();
+
+    // Initialize chat when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      loadPatients();
+
+      // Set up polling for new messages
+      setInterval(checkNewMessages, 10000);
+      setInterval(refreshPatientList, 30000);
+    });
+
+    function loadPatients() {
+      fetch('/api/reception/chat/patients')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            patients = data.patients;
+            displayPatients(patients);
+          } else {
+            console.error("Failed to load patients:", data.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading patients:", error);
+        });
+    }
+
+    function displayPatients(patientList) {
+      const patientListElement = document.getElementById('patientList');
+      patientListElement.innerHTML = '';
+
+      if (patientList.length === 0) {
+        patientListElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--gray);">No conversations yet</div>';
+        return;
+      }
+
+      patientList.forEach(patient => {
+        const patientItem = document.createElement('div');
+        patientItem.className = 'patient-item';
+        patientItem.dataset.id = patient.id;
+
+        if (currentPatientId && currentPatientId == patient.id) {
+          patientItem.classList.add('active');
+        }
+
+        let html = `
+          <div class="patient-name">${patient.name}</div>
+          <div class="patient-preview">${patient.last_message.content || 'No messages yet'}</div>
+        `;
+
+        if (patient.unread_count > 0) {
+          html += `<div class="unread-badge">${patient.unread_count}</div>`;
+        }
+
+        patientItem.innerHTML = html;
+
+        patientItem.addEventListener('click', () => selectPatient(patient.id));
+        patientListElement.appendChild(patientItem);
+      });
+    }
+
+    function selectPatient(patientId) {
+      currentPatientId = patientId;
+
+      // Update active state in patient list
+      const patientItems = document.querySelectorAll('.patient-item');
+      patientItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.id == patientId) {
+          item.classList.add('active');
+        }
+      });
+
+      loadMessages(patientId);
+    }
+
+    function loadMessages(patientId) {
+      fetch(`/api/reception/chat/messages/${patientId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            displayMessages(data.messages, data.patient);
+
+            // Update patient info if available
+            if (data.patient) {
+              const patientIndex = patients.findIndex(p => p.id == patientId);
+              if (patientIndex >= 0) {
+                patients[patientIndex] = {
+                  ...patients[patientIndex],
+                  ...data.patient
+                };
+              }
+            }
+
+            // Mark as read in the UI
+            const patientItem = document.querySelector(`.patient-item[data-id="${patientId}"]`);
+            if (patientItem) {
+              const unreadBadge = patientItem.querySelector('.unread-badge');
+              if (unreadBadge) {
+                unreadBadge.remove();
+              }
+            }
+          } else {
+            console.error("Failed to load messages:", data.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading messages:", error);
+        });
+    }
+
+    function displayMessages(messages, patient) {
+      const chatContainer = document.getElementById('chatContainer');
+
+      // Create chat interface
+      chatContainer.innerHTML = `
+        <div class="chat-header">
+          <div class="patient-info">
+            <h3>${patient.name}</h3>
+            <p>${patient.email} | ${patient.phone}</p>
+          </div>
+          <div class="chat-actions">
+            <button onclick="refreshMessages()" title="Refresh Messages"><i class="fas fa-sync-alt"></i></button>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+          <input type="text" class="message-input" id="messageInput" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+          <button class="send-btn" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      `;
+
+      // Display messages
+      const chatMessages = document.getElementById('chatMessages');
+
+      if (messages.length === 0) {
+        chatMessages.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray);">No messages yet</div>';
+        return;
+      }
+
+      messages.forEach(message => {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${message.sender_type}`;
+        messageElement.dataset.id = message.id;
+
+        const messageDate = new Date(message.timestamp);
+
+        // Check if message is deleted
+        if (message.is_deleted) {
+          let messageContent = `
+            <div class="message-bubble deleted-message">
+              <i class="fas fa-ban"></i> This message was deleted
+            </div>
+            <div class="message-time">${formatTime(messageDate)}</div>
+          `;
+          messageElement.innerHTML = messageContent;
+          chatMessages.appendChild(messageElement);
+          return;
+        }
+
+        let messageContent = `
+          <div class="message-bubble">
+            ${message.content}
+            ${message.sender_type === 'reception' ? `
+              <div class="message-actions">
+                <button class="delete-message" onclick="deleteMessage(${message.id})" title="Delete Message">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+
+        // Add attachment if present
+        if (message.attachment) {
+          const fileExt = message.attachment.split('.').pop().toLowerCase();
+          messageContent += `<div class="attachment-container">`;
+
+          // Handle different file types
+          if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+            // Images
+            messageContent += `
+              <img src="${message.attachment}" class="attachment-preview" alt="Image Attachment" />
+              <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                <i class="fas fa-download"></i> Download Image
+              </a>
+            `;
+          } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {
+            // Videos
+            messageContent += `
+              <video controls class="video-preview">
+                <source src="${message.attachment}" type="video/${fileExt === 'mov' ? 'mp4' : fileExt}">
+                Your browser does not support the video tag.
+              </video>
+              <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                <i class="fas fa-download"></i> Download Video
+              </a>
+            `;
+          } else if (['mp3', 'wav'].includes(fileExt)) {
+            // Audio
+            messageContent += `
+              <audio controls class="audio-preview">
+                <source src="${message.attachment}" type="audio/${fileExt}">
+                Your browser does not support the audio tag.
+              </audio>
+              <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                <i class="fas fa-download"></i> Download Audio
+              </a>
+            `;
+          } else if (['pdf'].includes(fileExt)) {
+            // PDF files
+            messageContent += `
+              <iframe src="${message.attachment}" class="file-preview" title="PDF Viewer"></iframe>
+              <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                <i class="fas fa-file-pdf"></i> Download PDF
+              </a>
+            `;
+          } else {
+            // Other file types
+            let fileIcon = 'fa-file';
+            if (['doc', 'docx'].includes(fileExt)) fileIcon = 'fa-file-word';
+            else if (['xls', 'xlsx'].includes(fileExt)) fileIcon = 'fa-file-excel';
+            else if (['ppt', 'pptx'].includes(fileExt)) fileIcon = 'fa-file-powerpoint';
+            else if (['zip', 'rar', '7z'].includes(fileExt)) fileIcon = 'fa-file-archive';
+            else if (['txt', 'log'].includes(fileExt)) fileIcon = 'fa-file-alt';
+
+            messageContent += `
+              <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                <i class="fas ${fileIcon}"></i> Download ${fileExt.toUpperCase()} File
+              </a>
+            `;
+          }
+
+          messageContent += `</div>`;
+        }
+
+        messageContent += `<div class="message-time">${formatTime(messageDate)}</div>`;
+
+        messageElement.innerHTML = messageContent;
+        chatMessages.appendChild(messageElement);
+      });
+
+      // Scroll to bottom
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+             ' | ' + date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+
+    function sendMessage() {
+      if (!currentPatientId) return;
+
+      const messageInput = document.getElementById('messageInput');
+      const content = messageInput.value.trim();
+
+      if (!content) return;
+
+      // Clear input
+      messageInput.value = '';
+
+      // Send message to server
+      fetch('/api/reception/chat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          patientId: currentPatientId,
+          content: content
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Add message to UI
+          const chatMessages = document.getElementById('chatMessages');
+          const messageElement = document.createElement('div');
+          messageElement.className = 'message reception';
+          messageElement.dataset.id = data.message.id;
+
+          const messageDate = new Date(data.message.timestamp);
+
+          messageElement.innerHTML = `
+            <div class="message-bubble">
+              ${data.message.content}
+            </div>
+            <div class="message-time">${formatTime(messageDate)}</div>
+          `;
+
+          chatMessages.appendChild(messageElement);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+
+          // Update patient preview in the list
+          const patientItem = document.querySelector(`.patient-item[data-id="${currentPatientId}"]`);
+          if (patientItem) {
+            const preview = patientItem.querySelector('.patient-preview');
+            if (preview) {
+              preview.textContent = content;
+            }
+          }
+        } else {
+          console.error("Failed to send message:", data.message);
+          alert("Failed to send message. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error("Error sending message:", error);
+        alert("Error sending message. Please check your connection.");
+      });
+    }
+
+    function checkNewMessages() {
+      if (!currentPatientId) return;
+
+      fetch(`/api/reception/chat/new/${currentPatientId}?since=${lastCheckTime}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Filter out messages we already have
+            const existingMessageIds = Array.from(document.querySelectorAll('.message')).map(el => el.dataset.id);
+            const newMessages = data.messages.filter(msg => !existingMessageIds.includes(msg.id.toString()));
+
+            if (newMessages.length > 0) {
+              // Add new messages to UI
+              const chatMessages = document.getElementById('chatMessages');
+
+              newMessages.forEach(message => {
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${message.sender_type}`;
+                messageElement.dataset.id = message.id;
+
+                const messageDate = new Date(message.timestamp);
+
+                // Check if message is deleted
+                if (message.is_deleted) {
+                  let messageContent = `
+                    <div class="message-bubble deleted-message">
+                      <i class="fas fa-ban"></i> This message was deleted
+                    </div>
+                    <div class="message-time">${formatTime(messageDate)}</div>
+                  `;
+                  messageElement.innerHTML = messageContent;
+                  chatMessages.appendChild(messageElement);
+                  return;
+                }
+
+                let messageContent = `
+                  <div class="message-bubble">
+                    ${message.content}
+                    ${message.sender_type === 'reception' ? `
+                      <div class="message-actions">
+                        <button class="delete-message" onclick="deleteMessage(${message.id})" title="Delete Message">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+
+                // Add attachment if present
+                if (message.attachment) {
+                  const fileExt = message.attachment.split('.').pop().toLowerCase();
+                  messageContent += `<div class="attachment-container">`;
+
+                  // Handle different file types
+                  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+                    // Images
+                    messageContent += `
+                      <img src="${message.attachment}" class="attachment-preview" alt="Image Attachment" />
+                      <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                        <i class="fas fa-download"></i> Download Image
+                      </a>
+                    `;
+                  } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {
+                    // Videos
+                    messageContent += `
+                      <video controls class="video-preview">
+                        <source src="${message.attachment}" type="video/${fileExt === 'mov' ? 'mp4' : fileExt}">
+                        Your browser does not support the video tag.
+                      </video>
+                      <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                        <i class="fas fa-download"></i> Download Video
+                      </a>
+                    `;
+                  } else if (['mp3', 'wav'].includes(fileExt)) {
+                    // Audio
+                    messageContent += `
+                      <audio controls class="audio-preview">
+                        <source src="${message.attachment}" type="audio/${fileExt}">
+                        Your browser does not support the audio tag.
+                      </audio>
+                      <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                        <i class="fas fa-download"></i> Download Audio
+                      </a>
+                    `;
+                  } else if (['pdf'].includes(fileExt)) {
+                    // PDF files
+                    messageContent += `
+                      <iframe src="${message.attachment}" class="file-preview" title="PDF Viewer"></iframe>
+                      <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                      </a>
+                    `;
+                  } else {
+                    // Other file types
+                    let fileIcon = 'fa-file';
+                    if (['doc', 'docx'].includes(fileExt)) fileIcon = 'fa-file-word';
+                    else if (['xls', 'xlsx'].includes(fileExt)) fileIcon = 'fa-file-excel';
+                    else if (['ppt', 'pptx'].includes(fileExt)) fileIcon = 'fa-file-powerpoint';
+                    else if (['zip', 'rar', '7z'].includes(fileExt)) fileIcon = 'fa-file-archive';
+                    else if (['txt', 'log'].includes(fileExt)) fileIcon = 'fa-file-alt';
+
+                    messageContent += `
+                      <a href="${message.attachment}" class="attachment-link" target="_blank" download>
+                        <i class="fas ${fileIcon}"></i> Download ${fileExt.toUpperCase()} File
+                      </a>
+                    `;
+                  }
+
+                  messageContent += `</div>`;
+                }
+
+                messageContent += `<div class="message-time">${formatTime(messageDate)}</div>`;
+
+                messageElement.innerHTML = messageContent;
+                chatMessages.appendChild(messageElement);
+              });
+
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Update last check time
+            lastCheckTime = new Date().toISOString();
+          }
+        })
+        .catch(error => {
+          console.error("Error checking for new messages:", error);
+        });
+    }
+
+    function refreshPatientList() {
+      loadPatients();
+    }
+
+    function refreshMessages() {
+      if (currentPatientId) {
+        loadMessages(currentPatientId);
+      }
+    }
+
+    function filterPatients() {
+      const searchInput = document.getElementById('searchInput');
+      const searchTerm = searchInput.value.toLowerCase();
+
+      if (!searchTerm) {
+        displayPatients(patients);
+        return;
+      }
+
+      const filteredPatients = patients.filter(patient =>
+        patient.name.toLowerCase().includes(searchTerm) ||
+        patient.email.toLowerCase().includes(searchTerm) ||
+        patient.phone.toLowerCase().includes(searchTerm)
+      );
+
+      displayPatients(filteredPatients);
+    }
+
+    // Function to search for new patients by name
+    let searchTimeout = null;
+    function searchNewPatients() {
+      const searchInput = document.getElementById('newPatientSearchInput');
+      const searchResults = document.getElementById('searchResults');
+      const query = searchInput.value.trim();
+
+      // Clear previous timeout
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+
+      // Hide results if query is empty
+      if (!query) {
+        searchResults.innerHTML = '';
+        searchResults.classList.remove('active');
+        return;
+      }
+
+      // Set a timeout to avoid making too many requests while typing
+      searchTimeout = setTimeout(() => {
+        // Only search if query is at least 2 characters
+        if (query.length < 2) {
+          searchResults.innerHTML = '<div class="no-results">Type at least 2 characters to search</div>';
+          searchResults.classList.add('active');
+          return;
+        }
+
+        // Show loading state
+        searchResults.innerHTML = '<div class="search-result-item">Searching...</div>';
+        searchResults.classList.add('active');
+
+        // Make API request to search for patients
+        fetch(`/api/reception/search_patients?query=${encodeURIComponent(query)}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              if (data.patients.length === 0) {
+                searchResults.innerHTML = '<div class="no-results">No patients found</div>';
+              } else {
+                searchResults.innerHTML = '';
+                data.patients.forEach(patient => {
+                  const resultItem = document.createElement('div');
+                  resultItem.className = 'search-result-item';
+                  resultItem.innerHTML = `
+                    <div class="patient-name">${patient.name}</div>
+                    <div class="patient-details">${patient.email} | ${patient.phone}</div>
+                  `;
+                  resultItem.addEventListener('click', () => {
+                    // Check if this patient is already in the chat list
+                    const existingPatient = patients.find(p => p.id === patient.id);
+                    if (existingPatient) {
+                      // If already in list, just select them
+                      selectPatient(patient.id);
+                    } else {
+                      // If not in list, create a new chat
+                      initiateChat(patient);
+                    }
+
+                    // Clear search
+                    searchInput.value = '';
+                    searchResults.innerHTML = '';
+                    searchResults.classList.remove('active');
+                  });
+                  searchResults.appendChild(resultItem);
+                });
+              }
+            } else {
+              searchResults.innerHTML = `<div class="no-results">Error: ${data.message}</div>`;
+            }
+          })
+          .catch(error => {
+            console.error("Error searching patients:", error);
+            searchResults.innerHTML = '<div class="no-results">Error searching patients</div>';
+          });
+      }, 300); // 300ms delay
+    }
+
+    // Function to initiate a chat with a new patient
+    function initiateChat(patient) {
+      // Create a welcome message to send to the patient
+      const welcomeMessage = `Hello ${patient.name}, how can I help you today?`;
+
+      // Send the message to the API
+      fetch('/api/reception/chat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          patientId: patient.id,
+          content: welcomeMessage
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Add the patient to our list with the welcome message
+          const newPatient = {
+            id: patient.id,
+            name: patient.name,
+            email: patient.email,
+            phone: patient.phone,
+            unread_count: 0,
+            last_message: {
+              content: welcomeMessage,
+              timestamp: data.message.timestamp,
+              sender_type: 'reception'
+            }
+          };
+
+          // Add to the beginning of the patients array
+          patients.unshift(newPatient);
+
+          // Refresh the display
+          displayPatients(patients);
+
+          // Select the new patient
+          selectPatient(patient.id);
+
+          // Show a success message
+          alert(`Chat initiated with ${patient.name}`);
+        } else {
+          console.error("Failed to initiate chat:", data.message);
+          alert("Failed to initiate chat. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error("Error initiating chat:", error);
+        alert("Error initiating chat. Please check your connection.");
+      });
+    }
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(event) {
+      const searchResults = document.getElementById('searchResults');
+      const searchInput = document.getElementById('newPatientSearchInput');
+
+      if (event.target !== searchInput && event.target !== searchResults) {
+        searchResults.classList.remove('active');
+      }
+    });
+
+    function deleteMessage(messageId) {
+      if (!confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+        return;
+      }
+
+      fetch('/api/reception/chat/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messageId: messageId
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Find the message element and update its appearance
+          const messageElement = document.querySelector(`.message[data-id="${messageId}"]`);
+          if (messageElement) {
+            const messageBubble = messageElement.querySelector('.message-bubble');
+            if (messageBubble) {
+              // Replace content with deleted message indicator
+              messageBubble.innerHTML = '<i class="fas fa-ban"></i> This message was deleted';
+              messageBubble.classList.add('deleted-message');
+
+              // Remove delete button
+              const messageActions = messageElement.querySelector('.message-actions');
+              if (messageActions) {
+                messageActions.remove();
+              }
+            }
+          }
+        } else {
+          alert('Failed to delete message: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting message:', error);
+        alert('An error occurred while deleting the message. Please try again.');
+      });
+    }
+  </script>
+</body>
+</html>

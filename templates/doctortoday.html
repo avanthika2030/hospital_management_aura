@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Today's Appointments</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: url('static/images/bg.jpg') no-repeat center center/cover;
+      background-color: #e3f2fd;
+      padding-bottom: 40px;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .nav-center {
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      width: 220px;
+      height: 60px;
+      margin: 6px 0;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      background: rgba(33, 150, 243, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(33, 150, 243, 0.3);
+      backdrop-filter: blur(12px);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-menu button:hover {
+      transform: scale(1.05);
+    }
+
+    .appointments {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .appt-card {
+      width: 90%;
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 123, 255, 0.2);
+      padding: 20px;
+      color: white;
+      margin: 12px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .appt-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .patient-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    .time {
+      font-size: 16px;
+      color: #bbdefb;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      background-color: #2196f3;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #1976d2;
+    }
+
+    .no-appointments {
+      margin-top: 60px;
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      background: rgba(0,0,0,0.2);
+      padding: 20px 30px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Today's Appointments</div>
+    <div class="nav-right">
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='/doctor/dashboard'">Dashboard</button>
+      <button onclick="window.location.href='/doctor/appointments'">All Appointments</button>
+      <button onclick="window.location.href='/doctor/pending'">Pending Requests</button>
+      <button onclick="window.location.href='/doctor/profile'">Profile</button>
+      <button onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </nav>
+
+  <div class="appointments">
+
+    <div class="appt-card">
+      <div class="appt-details">
+        <div class="patient-name">John Doe</div>
+        <div class="time">10:30 AM</div>
+      </div>
+      <div class="actions">
+        <button class="btn">History</button>
+      </div>
+    </div>
+
+    <div class="appt-card">
+      <div class="appt-details">
+        <div class="patient-name">Priya Sharma</div>
+        <div class="time">1:00 PM</div>
+      </div>
+      <div class="actions">
+        <button class="btn">History</button>
+      </div>
+    </div>
+
+    <div class="appt-card">
+      <div class="appt-details">
+        <div class="patient-name">Ankit Mehra</div>
+        <div class="time">4:15 PM</div>
+      </div>
+      <div class="actions">
+        <button class="btn">History</button>
+      </div>
+    </div>
+
+    <!-- Uncomment this if there are no appointments -->
+    <!-- <div class="no-appointments">No appointments for today.</div> -->
+
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+  </script>
+
+</body>
+</html>

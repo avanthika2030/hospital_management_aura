@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>AURA Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_common.css') }}">
+  <style>
+    /* Additional page-specific styles */
+    .notification-alert {
+      background-color: #ffebee;
+      border-left: 4px solid #f44336;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .view-notifications {
+      margin-left: auto;
+      background-color: var(--primary);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .view-notifications:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Video background -->
+  <div class="animated-bg">
+    <video autoplay muted loop>
+      <source src="{{ url_for('static', filename='videos/dental_background.mp4') }}" type="video/mp4">
+    </video>
+  </div>
+
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Patient Dashboard</div>
+    <div class="nav-right">
+      <div class="nav-icons">
+        <a href="/notifications" class="notification-icon" title="Notifications">
+          <i class="fas fa-bell"></i>
+          {% if unread_notifications > 0 %}
+          <span class="notification-badge">{{ unread_notifications }}</span>
+          {% endif %}
+        </a>
+      </div>
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='/userhome'">Dashboard</button>
+      <button onclick="window.location.href='/notifications'">Notifications</button>
+      <button onclick="window.location.href='/appointment'">Book Appointment</button>
+      <button onclick="window.location.href='/status'">Appointment Status</button>
+      <button onclick="window.location.href='/history'">Medical History</button>
+      <button onclick="window.location.href='/chat'">Chat</button>
+      <button onclick="window.location.href='/gallery'">Gallery</button>
+      <button onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </nav>
+
+  <div class="dashboard">
+    <h1>Welcome, {{ user_name }}!</h1>
+    <p>Manage your appointments, check status, view history, and communicate with your doctors</p>
+
+    {% if unread_notifications > 0 %}
+    <div class="notification-alert">
+      <i class="fas fa-bell"></i>
+      You have {{ unread_notifications }} new notification{% if unread_notifications > 1 %}s{% endif %}
+      <a href="/notifications" class="view-notifications">View Now</a>
+    </div>
+    {% endif %}
+
+    <div class="dashboard-buttons">
+      <button class="dashboard-btn" onclick="window.location.href='/appointment'">
+        <i class="fas fa-calendar-plus"></i>
+        APPOINTMENT BOOKING
+      </button>
+      <button class="dashboard-btn" onclick="window.location.href='/status'">
+        <i class="fas fa-clipboard-check"></i>
+        STATUS
+      </button>
+      <button class="dashboard-btn" onclick="window.location.href='/history'">
+        <i class="fas fa-history"></i>
+        HISTORY
+      </button>
+      <button class="dashboard-btn" onclick="window.location.href='/chat'">
+        <i class="fas fa-comments"></i>
+        CHAT
+      </button>
+      <button class="dashboard-btn notification-btn" onclick="window.location.href='/notifications'">
+        <i class="fas fa-bell"></i>
+        NOTIFICATIONS
+        {% if unread_notifications > 0 %}
+        <span class="dashboard-badge">{{ unread_notifications }}</span>
+        {% endif %}
+      </button>
+      <button class="dashboard-btn" onclick="window.location.href='/gallery'">
+        <i class="fas fa-images"></i>
+        GALLERY
+      </button>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2023 AURA Dental Hospital. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('show');
+    }
+
+    // Initialize when page loads
+    window.onload = function() {
+      // Start checking for new notifications
+      setInterval(checkNotifications, 30000); // Check every 30 seconds
+    };
+
+    // Function to check for new notifications
+    function checkNotifications() {
+      fetch('/api/notifications/count')
+        .then(response => response.json())
+        .then(data => {
+          updateNotificationBadges(data.count);
+        })
+        .catch(error => console.error('Error checking notifications:', error));
+    }
+
+    // Function to update notification badges
+    function updateNotificationBadges(count) {
+      // Update the notification icon badge
+      const navBadge = document.querySelector('.notification-icon .notification-badge');
+      const dashboardBadge = document.querySelector('.notification-btn .dashboard-badge');
+
+      if (count > 0) {
+        // If badges don't exist, create them
+        if (!navBadge) {
+          const navIcon = document.querySelector('.notification-icon');
+          if (navIcon) {
+            const badge = document.createElement('span');
+            badge.className = 'notification-badge';
+            badge.textContent = count;
+            navIcon.appendChild(badge);
+          }
+        } else {
+          // Update existing badge
+          navBadge.textContent = count;
+        }
+
+        if (!dashboardBadge) {
+          const notificationBtn = document.querySelector('.notification-btn');
+          if (notificationBtn) {
+            const badge = document.createElement('span');
+            badge.className = 'dashboard-badge';
+            badge.textContent = count;
+            notificationBtn.appendChild(badge);
+          }
+        } else {
+          // Update existing badge
+          dashboardBadge.textContent = count;
+        }
+      } else {
+        // Remove badges if count is 0
+        if (navBadge) navBadge.remove();
+        if (dashboardBadge) dashboardBadge.remove();
+      }
+    }
+  </script>
+</body>
+</html>

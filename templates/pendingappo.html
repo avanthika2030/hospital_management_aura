@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pending Appointments</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    :root {
+      --primary: #1976D2;
+      --primary-light: #42A5F5;
+      --primary-dark: #0D47A1;
+      --accent: #FF5722;
+      --text-light: #FFFFFF;
+      --text-dark: #333333;
+      --bg-light: #F5F5F5;
+      --bg-dark: #E0E0E0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      font-size: 28px;
+      color: var(--primary-dark);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .nav-center {
+      color: var(--primary-dark);
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-right img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-right span {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-dark);
+      margin-top: 4px;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      overflow: hidden;
+    }
+
+    .nav-menu.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .nav-menu button {
+      padding: 15px;
+      border: none;
+      background: none;
+      text-align: left;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: var(--primary-dark);
+      font-weight: 500;
+      width: 200px;
+    }
+
+    .nav-menu button:hover {
+      background: #f0f7ff;
+      padding-left: 25px;
+    }
+
+    .page-title {
+      text-align: center;
+      padding: 30px 0;
+      color: var(--primary-dark);
+      font-size: 32px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .pending-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .pending-card {
+      width: 90%;
+      margin: 15px 0;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+      color: var(--text-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .pending-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 123, 255, 0.3);
+    }
+
+    .pending-details {
+      flex-grow: 1;
+    }
+
+    .patient-name {
+      color: var(--primary-dark);
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .patient-info {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    .patient-notes {
+      font-size: 14px;
+      color: #666;
+      font-style: italic;
+      margin-top: 8px;
+      padding: 5px 0;
+      border-top: 1px dashed #ddd;
+    }
+
+    .date-time-input {
+      width: 180px;
+      padding: 8px;
+      margin-right: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+
+    .time-select {
+      width: 120px;
+      padding: 8px;
+      margin-right: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+
+    .assign-btn {
+      background-color: var(--primary);
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .assign-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .no-appointments {
+      text-align: center;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+      color: var(--primary-dark);
+      font-size: 18px;
+      font-weight: 500;
+      width: 90%;
+      margin: 20px 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--primary-dark);
+      position: relative;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-btn" onclick="toggleMenu()">☰</div>
+    <div class="nav-center">Pending Appointments</div>
+    <div class="nav-right">
+      <img src="static/images/logo.jpg" alt="Logo" />
+      <span>AURA</span>
+    </div>
+    <div class="nav-menu" id="navMenu">
+      <button onclick="window.location.href='/doctorhome'">Dashboard</button>
+      <button onclick="window.location.href='/doctort

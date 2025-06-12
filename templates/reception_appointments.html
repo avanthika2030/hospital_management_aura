@@ -1,0 +1,3645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Reception Appointments</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reception_common.css') }}">
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-light: #e0f2fe;
+        }
+
+        /* Appointments specific styles */
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background-color: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        /* Appointment Cards */
+        .appointments-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .appointment-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .appointment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Date group header */
+        .date-group-header {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px var(--shadow);
+        }
+
+        .date-group-header i {
+            margin-right: 10px;
+        }
+
+        /* Upcoming indicator */
+        .upcoming-indicator {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .appointment-date {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .appointment-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #fff7ed;
+            color: #c2410c;
+        }
+
+        .status-confirmed {
+            background-color: #ecfdf5;
+            color: #047857;
+        }
+
+        .status-cancelled {
+            background-color: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .status-completed {
+            background-color: #eff6ff;
+            color: #1e40af;
+        }
+
+        .status-date_suggested {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .status-patient_suggested {
+            background-color: #f0f9ff;
+            color: #0284c7;
+        }
+
+        .appointment-details {
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .detail-label {
+            width: 100px;
+            font-weight: 500;
+            color: var(--gray);
+        }
+
+        .detail-value {
+            flex: 1;
+            color: var(--dark);
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .time-selection {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .time-select, .duration-select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--dark);
+            background-color: var(--white);
+        }
+
+        .appointment-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Add Appointment Button */
+        .add-appointment {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .add-appointment:hover {
+            background-color: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        #addModal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            padding: 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-20px) scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Form elements in modal */
+        .modal .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .modal .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .modal .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+            outline: none;
+        }
+
+        .modal textarea.form-control {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal .cancel-btn, .modal .back-btn {
+            background-color: #f8fafc;
+            color: var(--gray);
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .modal .cancel-btn:hover, .modal .back-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--dark);
+            transform: translateY(-1px);
+        }
+
+        .modal .submit-btn, .modal .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(14, 165, 233, 0.2);
+            transition: all 0.2s;
+        }
+
+        .modal .submit-btn:hover, .modal .next-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+        }
+
+        .modal .submit-btn:disabled, .modal .next-btn:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Patient search styles */
+        .search-container {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: none;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .search-result-item.selected {
+            background-color: #e0f2fe;
+        }
+
+        .patient-name {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .patient-name strong {
+            color: var(--primary);
+            font-weight: 700;
+            background-color: rgba(14, 165, 233, 0.1);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        .patient-details {
+            font-size: 0.85em;
+            color: var(--gray);
+            margin-top: 3px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .match-indicator {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .match-indicator.exact {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .match-indicator.starts {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .match-indicator.word {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .match-indicator.contains {
+            background-color: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .match-indicator.fuzzy {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .fuzzy-match {
+            font-style: italic;
+            color: #6b7280;
+        }
+
+        .selected-patient-info {
+            padding: 12px 15px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .selected-patient-info .patient-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .selected-patient-info .patient-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .selected-patient-info .patient-info {
+            flex: 1;
+        }
+
+        .selected-patient-info .patient-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--dark);
+            margin-bottom: 3px;
+        }
+
+        .selected-patient-info .patient-details {
+            display: flex;
+            gap: 15px;
+            color: var(--gray);
+            font-size: 0.9em;
+        }
+
+        .selected-patient-info .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .selected-patient-info .change-patient {
+            color: var(--primary);
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .selected-patient-info .change-patient:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .no-patient-selected {
+            color: var(--gray);
+            font-style: italic;
+            margin: 0;
+        }
+
+        /* Form tabs */
+        .form-tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .form-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            position: relative;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .form-tab:hover {
+            color: var(--primary-dark);
+            background-color: rgba(14, 165, 233, 0.05);
+        }
+
+        .form-tab.active {
+            color: var(--primary);
+        }
+
+        .form-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .form-tab::before {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-light);
+            transition: width 0.2s;
+        }
+
+        .form-tab:hover::before {
+            width: 100%;
+        }
+
+        /* Form sections */
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Required field indicator */
+        .required {
+            color: #e53e3e;
+            margin-left: 2px;
+        }
+
+        /* Form text */
+        .form-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* Checkbox styles */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .text-warning {
+            color: #f59e0b;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: var(--dark);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            grid-column: 1 / -1;
+            gap: 10px;
+        }
+
+        .action-bar .btn {
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            margin: 20px 0;
+        }
+
+        /* Patient suggestion styles */
+        .patient-suggestion-info {
+            background-color: #e3f2fd;
+            border-left: 3px solid var(--primary);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .suggested-datetime {
+            font-weight: 500;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .suggestion-reason {
+            color: var(--gray);
+            font-style: italic;
+            margin-top: 5px;
+            padding-left: 20px;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .appointments-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Disabled button styles */
+        .btn.disabled, .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn.disabled:hover, .btn:disabled:hover {
+            background-color: transparent;
+            box-shadow: none;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo">
+                <h3>AURA Hospital</h3>
+                <p>Reception Portal</p>
+            </div>
+            <div class="sidebar-menu">
+                <a href="{{ url_for('reception_dashboard') }}" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('reception_appointments') }}" class="menu-item active">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="{{ url_for('reception_patients') }}" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Patients</span>
+                </a>
+                <a href="{{ url_for('reception_doctors') }}" class="menu-item">
+                    <i class="fas fa-user-md"></i>
+                    <span>Doctors</span>
+                </a>
+                <a href="{{ url_for('reception_chat') }}" class="menu-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Patient Chat</span>
+                </a>
+                <a href="{{ url_for('reception_gallery') }}" class="menu-item">
+                    <i class="fas fa-images"></i>
+                    <span>Gallery</span>
+                </a>
+                <a href="{{ url_for('consultation_history') }}" class="menu-item">
+                    <i class="fas fa-history"></i>
+                    <span>Consultation History</span>
+                </a>
+                <a href="{{ url_for('reception_logout') }}" class="menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="page-title">Appointment Management</h1>
+                <div class="user-info">
+                    <img src="https://ui-avatars.com/api/?name={{ session.get('reception_username', 'User') }}&background=0D8ABC&color=fff" alt="User">
+                    <span class="user-name">{{ session.get('reception_username', 'Reception') }}</span>
+                    <a href="{{ url_for('reception_logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" data-tab="all">All Appointments</div>
+                <div class="tab" data-tab="pending">Pending Requests</div>
+                <div class="tab" data-tab="today">Today's Appointments</div>
+                <div class="tab" data-tab="upcoming">Upcoming</div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button class="btn btn-success" onclick="openWalkInModal()" id="walkInButton">
+                    <i class="fas fa-user-plus"></i> Walk-in Appointment
+                </button>
+                <button class="btn btn-danger" onclick="removePastAppointments()" id="removeButton">
+                    <i class="fas fa-trash"></i> Remove Past & Cancelled Appointments
+                </button>
+            </div>
+
+            <!-- Appointments Container -->
+            <div class="appointments-container">
+                {% if appointments %}
+                    {% for appointment in appointments %}
+                        <div class="appointment-card" data-status="{{ appointment.status }}" data-id="{{ appointment.id }}">
+                            <div class="appointment-header">
+                                <div class="appointment-date">{{ appointment.appointment_date.strftime('%B %d, %Y') }}</div>
+                                <div class="appointment-status status-{{ appointment.status }}">{{ appointment.status.capitalize() }}</div>
+                            </div>
+                            <div class="appointment-details">
+                                <div class="detail-row">
+                                    <div class="detail-label">Patient:</div>
+                                    <div class="detail-value">
+                                        {% if appointment.user %}
+                                            <strong>{{ appointment.user.name }}</strong>
+                                        {% else %}
+                                            <strong>Unknown Patient (ID: {{ appointment.user_id }})</strong>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Phone:</div>
+                                    <div class="detail-value">
+                                        {% if appointment.user and appointment.user.phone %}
+                                            {{ appointment.user.phone }}
+                                        {% else %}
+                                            Not provided
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Email:</div>
+                                    <div class="detail-value">
+                                        {% if appointment.user %}
+                                            {{ appointment.user.email }}
+                                        {% else %}
+                                            Not available
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Doctor:</div>
+                                    <div class="detail-value">
+                                        {% if appointment.doctor %}
+                                            Dr. {{ appointment.doctor.name }} ({{ appointment.doctor.specialty }})
+                                        {% else %}
+                                            Unknown Doctor (ID: {{ appointment.doctor_id }})
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Time:</div>
+                                    <div class="detail-value">
+                                        {% if appointment.appointment_time %}
+                                            {{ appointment.appointment_time }}
+                                        {% else %}
+                                            Not set
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {% if appointment.notes %}
+                                <div class="detail-row">
+                                    <div class="detail-label">Notes:</div>
+                                    <div class="detail-value">
+                                        {% set user_notes = appointment.notes.split('[SYSTEM]')[0] %}
+                                        {{ user_notes }}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if appointment.status == 'pending' %}
+                                    <div class="time-selection">
+                                        <select id="time-{{ appointment.id }}" class="time-select">
+                                            <option value="">Select Time</option>
+                                            <option value="09:00 AM">09:00 AM</option>
+                                            <option value="09:30 AM">09:30 AM</option>
+                                            <option value="10:00 AM">10:00 AM</option>
+                                            <option value="10:30 AM">10:30 AM</option>
+                                            <option value="11:00 AM">11:00 AM</option>
+                                            <option value="11:30 AM">11:30 AM</option>
+                                            <option value="12:00 PM">12:00 PM</option>
+                                            <option value="12:30 PM">12:30 PM</option>
+                                            <option value="02:00 PM">02:00 PM</option>
+                                            <option value="02:30 PM">02:30 PM</option>
+                                            <option value="03:00 PM">03:00 PM</option>
+                                            <option value="03:30 PM">03:30 PM</option>
+                                            <option value="04:00 PM">04:00 PM</option>
+                                        </select>
+                                        <select id="duration-{{ appointment.id }}" class="duration-select">
+                                            <option value="15">15 min</option>
+                                            <option value="30" selected>30 min</option>
+                                            <option value="45">45 min</option>
+                                            <option value="60">60 min</option>
+                                            <option value="75">75 min</option>
+                                            <option value="90">90 min</option>
+                                            <option value="105">105 min</option>
+                                            <option value="120">120 min</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <div class="checkbox-container">
+                                            <input type="checkbox" id="force-book-{{ appointment.id }}" name="force-book-{{ appointment.id }}">
+                                            <label for="force-book-{{ appointment.id }}" class="checkbox-label">
+                                                Force booking (override time slot conflicts)
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- SINGLE set of appointment actions -->
+                            <div class="appointment-actions">
+                                {% if appointment.status == 'pending' %}
+                                    <button class="btn btn-success" onclick="confirmAppointment({{ appointment.id }})">
+                                        <i class="fas fa-check"></i> Confirm
+                                    </button>
+                                    <button class="btn btn-primary" onclick="suggestNewDate({{ appointment.id }})">
+                                        <i class="fas fa-calendar-alt"></i> Suggest New Date
+                                    </button>
+                                    <button class="btn btn-danger" onclick="rejectAppointment({{ appointment.id }})">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                {% elif appointment.status == 'confirmed' %}
+                                    <button class="btn btn-outline" id="complete-btn-{{ appointment.id }}" onclick="markCompleted({{ appointment.id }})" data-date="{{ appointment.appointment_date.strftime('%Y-%m-%d') }}" data-time="{{ appointment.appointment_time }}">
+                                        <i class="fas fa-check-circle"></i> Mark as Completed
+                                    </button>
+                                    <button class="btn btn-danger" onclick="cancelAppointment({{ appointment.id }})">
+                                        <i class="fas fa-ban"></i> Cancel
+                                    </button>
+                                {% elif appointment.status == 'patient_suggested' %}
+                                    <div class="patient-suggestion-info">
+                                        {% set suggested_info = appointment.notes.split('Patient suggested alternative date/time on ')[1]|default('') %}
+                                        {% if suggested_info %}
+                                            {% set date_time_info = suggested_info.split('. Reason:')[0]|default('') %}
+                                            {% set reason = suggested_info.split('. Reason:')[1]|default('') if '. Reason:' in suggested_info else '' %}
+                                            <div class="suggested-datetime">
+                                                <i class="fas fa-calendar-check"></i> Patient suggested: {{ date_time_info }}
+                                                {% if reason and reason.strip() %}
+                                                    <div class="suggestion-reason">Reason: {{ reason }}</div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <button class="btn btn-success" onclick="acceptPatientSuggestion({{ appointment.id }})">
+                                        <i class="fas fa-check"></i> Accept Suggestion
+                                    </button>
+                                    <button class="btn btn-primary" onclick="suggestNewDate({{ appointment.id }})">
+                                        <i class="fas fa-calendar-alt"></i> Suggest Another
+                                    </button>
+                                    <button class="btn btn-danger" onclick="rejectAppointment({{ appointment.id }})">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <div class="empty-state-text">No appointments found</div>
+                        <button class="btn btn-success" onclick="openAddModal()">
+                            <i class="fas fa-plus"></i> Add New Appointment
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Appointment Modal -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Appointment</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addAppointmentForm">
+                    <div class="form-group">
+                        <label for="patient_search" class="form-label">Patient Search</label>
+                        <div class="search-container">
+                            <input type="text" id="patient_search" class="form-control" placeholder="Search by name or phone number..." autocomplete="off">
+                            <div id="patient_search_results" class="search-results"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="selected_patient" class="form-label">Selected Patient</label>
+                        <div id="selected_patient_info" class="selected-patient-info">
+                            <p class="no-patient-selected">No patient selected</p>
+                        </div>
+                        <input type="hidden" id="user_id" name="user_id">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctor_id" class="form-label">Doctor</label>
+                        <select name="doctor_id" id="doctor_id" class="form-control" required>
+                            <option value="">Select Doctor</option>
+                            {% for doctor in doctors %}
+                                <option value="{{ doctor.id }}">Dr. {{ doctor.name }} ({{ doctor.specialty }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="appointment_date" class="form-label">Date</label>
+                        <input type="date" name="appointment_date" id="appointment_date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="appointment_time" class="form-label">Time</label>
+                        <select name="appointment_time" id="appointment_time" class="form-control" required>
+                            <option value="">Select Time</option>
+                            <option value="09:00 AM">09:00 AM</option>
+                            <option value="09:30 AM">09:30 AM</option>
+                            <option value="10:00 AM">10:00 AM</option>
+                            <option value="10:30 AM">10:30 AM</option>
+                            <option value="11:00 AM">11:00 AM</option>
+                            <option value="11:30 AM">11:30 AM</option>
+                            <option value="12:00 PM">12:00 PM</option>
+                            <option value="12:30 PM">12:30 PM</option>
+                            <option value="02:00 PM">02:00 PM</option>
+                            <option value="02:30 PM">02:30 PM</option>
+                            <option value="03:00 PM">03:00 PM</option>
+                            <option value="03:30 PM">03:30 PM</option>
+                            <option value="04:00 PM">04:00 PM</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="appointment_duration" class="form-label">Duration</label>
+                        <select name="appointment_duration" id="appointment_duration" class="form-control">
+                            <option value="15">15 minutes</option>
+                            <option value="30" selected>30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="75">1 hour 15 minutes</option>
+                            <option value="90">1 hour 30 minutes</option>
+                            <option value="105">1 hour 45 minutes</option>
+                            <option value="120">2 hours</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="force_book" name="force_book">
+                            <label for="force_book" class="checkbox-label">
+                                Force booking (override time slot conflicts)
+                            </label>
+                        </div>
+                        <small class="form-text text-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Use with caution: This will book the appointment even if the doctor already has another appointment at this time.
+                        </small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline cancel-btn" onclick="closeModal()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="button" class="btn btn-primary submit-btn" onclick="submitAppointment()">
+                            <i class="fas fa-check"></i> Add Appointment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suggest New Date Modal -->
+    <div class="modal" id="suggestDateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Suggest New Appointment Date</h2>
+                <button type="button" class="modal-close" onclick="closeSuggestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="suggest-appointment-id">
+
+                <div class="form-group">
+                    <label for="suggested-date" class="form-label">Suggested Date</label>
+                    <input type="date" id="suggested-date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="suggested-time" class="form-label">Suggested Time</label>
+                    <select id="suggested-time" class="form-control" required>
+                        <option value="">Select Time</option>
+                        <option value="09:00 AM">09:00 AM</option>
+                        <option value="09:30 AM">09:30 AM</option>
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="10:30 AM">10:30 AM</option>
+                        <option value="11:00 AM">11:00 AM</option>
+                        <option value="11:30 AM">11:30 AM</option>
+                        <option value="12:00 PM">12:00 PM</option>
+                        <option value="12:30 PM">12:30 PM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="02:30 PM">02:30 PM</option>
+                        <option value="03:00 PM">03:00 PM</option>
+                        <option value="03:30 PM">03:30 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="suggestion-reason" class="form-label">Reason (Optional)</label>
+                    <textarea id="suggestion-reason" class="form-control" rows="3" placeholder="Explain why you're suggesting a new date/time"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline cancel-btn" onclick="closeSuggestModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary submit-btn" onclick="submitSuggestion()">
+                        <i class="fas fa-paper-plane"></i> Send Suggestion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Walk-in Appointment Modal -->
+    <div class="modal" id="walkInModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Register Walk-in Patient</h2>
+                <button type="button" class="modal-close" onclick="closeWalkInModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-tabs">
+                    <div class="form-tab active" data-tab="patient-info">Patient Information</div>
+                    <div class="form-tab" data-tab="appointment-info">Appointment Details</div>
+                </div>
+
+                <div class="form-sections">
+                    <!-- Patient Information Section -->
+                    <div class="form-section active" id="patient-info-section">
+                        <div class="form-group">
+                            <label for="patient-name" class="form-label">Full Name <span class="required">*</span></label>
+                            <input type="text" id="patient-name" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="patient-age" class="form-label">Age <span class="required">*</span></label>
+                            <input type="number" id="patient-age" class="form-control" min="1" max="120" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="patient-phone" class="form-label">Phone Number <span class="required">*</span></label>
+                            <input type="tel" id="patient-phone" class="form-control" required>
+                            <small class="form-text">This will be used as the login username</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="patient-email" class="form-label">Email</label>
+                            <input type="email" id="patient-email" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="patient-address" class="form-label">Address</label>
+                            <textarea id="patient-address" class="form-control" rows="2"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary next-btn" onclick="goToAppointmentInfo()">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Appointment Details Section -->
+                    <div class="form-section" id="appointment-info-section">
+                        <div class="form-group">
+                            <label for="walkin-doctor" class="form-label">Doctor <span class="required">*</span></label>
+                            <select id="walkin-doctor" class="form-control" required>
+                                <option value="">Select Doctor</option>
+                                {% for doctor in doctors %}
+                                    <option value="{{ doctor.id }}">Dr. {{ doctor.name }} ({{ doctor.specialty }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkin-date" class="form-label">Date <span class="required">*</span></label>
+                            <input type="date" id="walkin-date" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkin-time" class="form-label">Time <span class="required">*</span></label>
+                            <select id="walkin-time" class="form-control" required>
+                                <option value="">Select Time</option>
+                                <option value="09:00 AM">09:00 AM</option>
+                                <option value="09:30 AM">09:30 AM</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="10:30 AM">10:30 AM</option>
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="11:30 AM">11:30 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="12:30 PM">12:30 PM</option>
+                                <option value="02:00 PM">02:00 PM</option>
+                                <option value="02:30 PM">02:30 PM</option>
+                                <option value="03:00 PM">03:00 PM</option>
+                                <option value="03:30 PM">03:30 PM</option>
+                                <option value="04:00 PM">04:00 PM</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkin-duration" class="form-label">Duration</label>
+                            <select id="walkin-duration" class="form-control">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="75">1 hour 15 minutes</option>
+                                <option value="90">1 hour 30 minutes</option>
+                                <option value="105">1 hour 45 minutes</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkin-notes" class="form-label">Notes</label>
+                            <textarea id="walkin-notes" class="form-control" rows="3" placeholder="Enter any relevant notes about the patient's condition"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="walkin-force-book" name="walkin-force-book">
+                                <label for="walkin-force-book" class="checkbox-label">
+                                    Force booking (override time slot conflicts)
+                                </label>
+                            </div>
+                            <small class="form-text text-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Use with caution: This will book the appointment even if the doctor already has another appointment at this time.
+                            </small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline back-btn" onclick="goToPatientInfo()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-primary submit-btn" onclick="submitWalkInAppointment()">
+                                <i class="fas fa-check"></i> Create Appointment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the page
+        // Store doctor working days information
+        const doctorWorkingDays = {
+            {% for doctor in doctors %}
+                {{ doctor.id }}: "{{ doctor.available_days }}",
+            {% endfor %}
+        };
+
+        // Function to check if a date is a working day for a doctor
+        function isDoctorWorkingDay(doctorId, dateObj) {
+            if (!doctorId || !dateObj) return true; // Default to true if no doctor selected
+
+            // Get the day of the week (0 = Sunday, 1 = Monday, etc.)
+            const dayOfWeek = dateObj.getDay();
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayName = dayNames[dayOfWeek];
+
+            // Get the doctor's working days
+            const workingDays = doctorWorkingDays[doctorId];
+            if (!workingDays) return true; // Default to true if doctor not found
+
+            // Check if the day is in the doctor's working days
+            return workingDays.split(',').map(day => day.trim()).includes(dayName);
+        }
+
+        // Function to get the next working day for a doctor
+        function getNextWorkingDay(doctorId, dateObj) {
+            if (!doctorId || !dateObj) return null;
+
+            // Clone the date object to avoid modifying the original
+            const nextDate = new Date(dateObj);
+
+            // Try the next 14 days (to avoid infinite loop)
+            for (let i = 1; i <= 14; i++) {
+                // Move to the next day
+                nextDate.setDate(nextDate.getDate() + 1);
+
+                // Check if it's a working day
+                if (isDoctorWorkingDay(doctorId, nextDate)) {
+                    return nextDate;
+                }
+            }
+
+            return null; // No working day found in the next 14 days
+        }
+
+        // Function to filter time options based on current time
+        function filterPastTimeOptions(timeSelect) {
+            if (!timeSelect) return;
+
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+
+            // Loop through all time options
+            Array.from(timeSelect.options).forEach(option => {
+                if (option.value === '') return; // Skip the empty "Select Time" option
+
+                // Parse the time option (format: "HH:MM AM/PM")
+                const timeStr = option.value;
+                let [hours, minutes] = timeStr.split(':');
+                minutes = minutes.substring(0, 2);
+                const isPM = timeStr.toLowerCase().includes('pm');
+
+                let optionHour = parseInt(hours);
+                const optionMinute = parseInt(minutes);
+
+                // Convert to 24-hour format for comparison
+                if (isPM && optionHour < 12) optionHour += 12;
+                if (!isPM && optionHour === 12) optionHour = 0;
+
+                // Disable past time options
+                if (optionHour < currentHour || (optionHour === currentHour && optionMinute <= currentMinute)) {
+                    option.disabled = true;
+                    option.style.color = '#aaa';
+                    option.style.fontStyle = 'italic';
+                } else {
+                    option.disabled = false;
+                    option.style.color = '';
+                    option.style.fontStyle = '';
+                }
+            });
+
+            // If the currently selected option is disabled, select the first available option
+            if (timeSelect.selectedIndex > 0 && timeSelect.options[timeSelect.selectedIndex].disabled) {
+                // Find the first enabled option
+                const firstEnabledOption = Array.from(timeSelect.options).findIndex(option => !option.disabled);
+                if (firstEnabledOption > 0) {
+                    timeSelect.selectedIndex = firstEnabledOption;
+                } else {
+                    timeSelect.selectedIndex = 0; // Select the "Select Time" option if no enabled options
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded");
+
+            // Get URL parameters to check if a specific tab should be active
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab') || 'all';
+
+            // Activate the correct tab
+            const tabToActivate = document.querySelector(`.tab[data-tab="${activeTab}"]`) ||
+                                 document.querySelector('.tab[data-tab="all"]');
+
+            if (tabToActivate) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tabToActivate.classList.add('active');
+                filterAppointments(activeTab);
+            }
+
+            // Check and update all "Mark as Completed" buttons
+            updateCompletionButtons();
+
+            // Set up an interval to check every minute
+            setInterval(updateCompletionButtons, 60000);
+
+            // Function to validate doctor working day and suggest next available day
+            function validateDoctorWorkingDay(doctorId, dateInput) {
+                if (!doctorId || !dateInput || !dateInput.value) return true;
+
+                const selectedDate = new Date(dateInput.value);
+
+                // Check if the selected date is a working day for the doctor
+                if (!isDoctorWorkingDay(doctorId, selectedDate)) {
+                    // Get the next working day
+                    const nextWorkingDay = getNextWorkingDay(doctorId, selectedDate);
+
+                    if (nextWorkingDay) {
+                        const formattedNextDay = nextWorkingDay.toISOString().split('T')[0];
+                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        const dayName = dayNames[nextWorkingDay.getDay()];
+
+                        // Ask the user if they want to use the next working day
+                        if (confirm(`The selected doctor doesn't work on ${dayNames[selectedDate.getDay()]}s.\n\nWould you like to schedule for their next working day (${dayName}, ${formattedNextDay})?`)) {
+                            dateInput.value = formattedNextDay;
+                            return true;
+                        }
+
+                        // If user doesn't want to use the next working day, clear the date
+                        dateInput.value = '';
+                        return false;
+                    } else {
+                        alert(`The selected doctor doesn't work on ${dayNames[selectedDate.getDay()]}s and no upcoming working days were found.`);
+                        dateInput.value = '';
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            // Add event listeners to date inputs to filter time options
+            const appointmentDateInput = document.getElementById('appointment_date');
+            const appointmentTimeSelect = document.getElementById('appointment_time');
+            const doctorSelect = document.getElementById('doctor_id');
+
+            if (appointmentDateInput && appointmentTimeSelect) {
+                // Initial filtering if today is selected
+                if (appointmentDateInput.value === new Date().toISOString().split('T')[0]) {
+                    filterPastTimeOptions(appointmentTimeSelect);
+                }
+
+                // Add change event listener for date
+                appointmentDateInput.addEventListener('change', function() {
+                    const today = new Date().toISOString().split('T')[0];
+
+                    // Check if the selected date is a working day for the doctor
+                    const doctorId = doctorSelect ? doctorSelect.value : null;
+                    if (doctorId) {
+                        validateDoctorWorkingDay(doctorId, this);
+                    }
+
+                    // Filter past times if today is selected
+                    if (this.value === today) {
+                        filterPastTimeOptions(appointmentTimeSelect);
+                    } else {
+                        // Reset all options if not today
+                        Array.from(appointmentTimeSelect.options).forEach(option => {
+                            option.disabled = false;
+                            option.style.color = '';
+                            option.style.fontStyle = '';
+                        });
+                    }
+                });
+
+                // Add change event listener for doctor selection
+                if (doctorSelect) {
+                    doctorSelect.addEventListener('change', function() {
+                        if (appointmentDateInput.value && this.value) {
+                            validateDoctorWorkingDay(this.value, appointmentDateInput);
+                        }
+                    });
+                }
+            }
+
+            // Same for walk-in appointment form
+            const walkinDateInput = document.getElementById('walkin-date');
+            const walkinTimeSelect = document.getElementById('walkin-time');
+            const walkinDoctorSelect = document.getElementById('walkin-doctor');
+
+            if (walkinDateInput && walkinTimeSelect) {
+                // Initial filtering if today is selected
+                if (walkinDateInput.value === new Date().toISOString().split('T')[0]) {
+                    filterPastTimeOptions(walkinTimeSelect);
+                }
+
+                // Add change event listener for date
+                walkinDateInput.addEventListener('change', function() {
+                    const today = new Date().toISOString().split('T')[0];
+
+                    // Check if the selected date is a working day for the doctor
+                    const doctorId = walkinDoctorSelect ? walkinDoctorSelect.value : null;
+                    if (doctorId) {
+                        validateDoctorWorkingDay(doctorId, this);
+                    }
+
+                    // Filter past times if today is selected
+                    if (this.value === today) {
+                        filterPastTimeOptions(walkinTimeSelect);
+                    } else {
+                        // Reset all options if not today
+                        Array.from(walkinTimeSelect.options).forEach(option => {
+                            option.disabled = false;
+                            option.style.color = '';
+                            option.style.fontStyle = '';
+                        });
+                    }
+                });
+
+                // Add change event listener for doctor selection
+                if (walkinDoctorSelect) {
+                    walkinDoctorSelect.addEventListener('change', function() {
+                        if (walkinDateInput.value && this.value) {
+                            validateDoctorWorkingDay(this.value, walkinDateInput);
+                        }
+                    });
+                }
+            }
+
+            // Add direct event listeners to buttons
+            const walkInButton = document.getElementById('walkInButton');
+            if (walkInButton) {
+                console.log("Walk-in button found, adding event listener");
+                walkInButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openWalkInModal();
+                });
+            }
+
+            const removeButton = document.getElementById('removeButton');
+            if (removeButton) {
+                console.log("Remove button found, adding event listener");
+                removeButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    removePastAppointments();
+                });
+            }
+
+            // Add event listeners to form tabs in the walk-in modal
+            document.querySelectorAll('.form-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabType = this.getAttribute('data-tab');
+                    console.log(`Form tab clicked: ${tabType}`);
+
+                    if (tabType === 'patient-info') {
+                        goToPatientInfo();
+                    } else if (tabType === 'appointment-info') {
+                        goToAppointmentInfo();
+                    }
+                });
+            });
+
+            // Add event listeners to the form buttons
+            const nextBtn = document.querySelector('.next-btn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToAppointmentInfo();
+                });
+            }
+
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToPatientInfo();
+                });
+            }
+
+            const submitBtn = document.querySelector('#appointment-info-section .submit-btn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    submitWalkInAppointment();
+                });
+            }
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Filter appointments based on tab
+                const tabType = tab.getAttribute('data-tab');
+                filterAppointments(tabType);
+
+                // Update URL without reloading the page
+                const url = new URL(window.location);
+                url.searchParams.set('tab', tabType);
+                window.history.pushState({}, '', url);
+            });
+        });
+
+        // Filter appointments based on tab
+        function filterAppointments(tabType) {
+            const container = document.querySelector('.appointments-container');
+            const cards = document.querySelectorAll('.appointment-card');
+            const actionBar = document.querySelector('.action-bar');
+
+            // Remove any existing date group headers
+            document.querySelectorAll('.date-group-header').forEach(header => header.remove());
+
+            // Remove any existing upcoming indicators
+            document.querySelectorAll('.upcoming-indicator').forEach(indicator => indicator.remove());
+
+            // Reset all cards display
+            cards.forEach(card => {
+                card.style.display = 'block';
+                card.style.order = '0';
+            });
+
+            // Show action bar only on 'all' tab
+            if (actionBar) {
+                actionBar.style.display = tabType === 'all' ? 'block' : 'none';
+            }
+
+            if (tabType === 'pending') {
+                // Filter for pending appointments
+                cards.forEach(card => {
+                    const status = card.querySelector('.appointment-status').textContent.toLowerCase();
+                    if (status !== 'pending') {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Check if there are any visible cards
+                const visibleCards = Array.from(cards).filter(card => card.style.display !== 'none');
+                if (visibleCards.length === 0) {
+                    showNoAppointmentsMessage('No pending appointment requests');
+                }
+            }
+            else if (tabType === 'today') {
+                // Filter for today's appointments
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                cards.forEach(card => {
+                    const dateText = card.querySelector('.appointment-date').textContent;
+                    const date = new Date(dateText);
+                    date.setHours(0, 0, 0, 0);
+
+                    if (!(date.getTime() === today.getTime())) {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Check if there are any visible cards
+                const visibleCards = Array.from(cards).filter(card => card.style.display !== 'none');
+                if (visibleCards.length === 0) {
+                    showNoAppointmentsMessage('No appointments scheduled for today');
+                }
+            }
+            else if (tabType === 'upcoming') {
+                // Get today's date at midnight for comparison
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // Collect and sort upcoming appointments
+                const upcomingAppointments = [];
+
+                cards.forEach(card => {
+                    const status = card.querySelector('.appointment-status').textContent.toLowerCase();
+                    const dateText = card.querySelector('.appointment-date').textContent;
+                    const date = new Date(dateText);
+                    date.setHours(0, 0, 0, 0);
+
+                    // Hide card initially
+                    card.style.display = 'none';
+
+                    // Check if it's an upcoming appointment (future date and not cancelled/completed)
+                    if (date >= today && status !== 'cancelled' && status !== 'completed') {
+                        upcomingAppointments.push({
+                            card: card,
+                            date: date,
+                            dateText: dateText
+                        });
+                    }
+                });
+
+                // If no upcoming appointments, show message
+                if (upcomingAppointments.length === 0) {
+                    showNoAppointmentsMessage('No upcoming appointments');
+                    return;
+                }
+
+                // Sort appointments by date
+                upcomingAppointments.sort((a, b) => a.date - b.date);
+
+                // Group appointments by date
+                const dateGroups = {};
+                upcomingAppointments.forEach(appointment => {
+                    const dateKey = appointment.date.toISOString().split('T')[0];
+                    if (!dateGroups[dateKey]) {
+                        dateGroups[dateKey] = [];
+                    }
+                    dateGroups[dateKey].push(appointment);
+                });
+
+                // Create date headers and show cards in order
+                let order = 1;
+                Object.keys(dateGroups).forEach(dateKey => {
+                    const appointments = dateGroups[dateKey];
+                    const firstAppointment = appointments[0];
+
+                    // Create date header
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = 'date-group-header';
+
+                    // Format the date nicely
+                    const dateObj = new Date(dateKey);
+                    const formattedDate = dateObj.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Check if it's tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    tomorrow.setHours(0, 0, 0, 0);
+
+                    let dateLabel = formattedDate;
+                    if (dateObj.getTime() === today.getTime()) {
+                        dateLabel = `Today - ${formattedDate}`;
+                    } else if (dateObj.getTime() === tomorrow.getTime()) {
+                        dateLabel = `Tomorrow - ${formattedDate}`;
+                    }
+
+                    dateHeader.innerHTML = `<i class="fas fa-calendar-day"></i> ${dateLabel}`;
+                    dateHeader.style.order = order++;
+                    container.appendChild(dateHeader);
+
+                    // Show appointments for this date
+                    appointments.forEach(appointment => {
+                        appointment.card.style.display = 'block';
+                        appointment.card.style.order = order++;
+
+                        // Add "Today" or "Tomorrow" indicator
+                        if (dateObj.getTime() === today.getTime() || dateObj.getTime() === tomorrow.getTime()) {
+                            const indicator = document.createElement('div');
+                            indicator.className = 'upcoming-indicator';
+                            indicator.innerHTML = dateObj.getTime() === today.getTime() ?
+                                '<i class="fas fa-clock"></i>' :
+                                '<i class="fas fa-calendar-day"></i>';
+                            indicator.title = dateObj.getTime() === today.getTime() ? 'Today' : 'Tomorrow';
+                            appointment.card.appendChild(indicator);
+                        }
+                    });
+                });
+
+                // Make container use the order property
+                container.style.display = 'grid';
+            }
+            else {
+                // All appointments tab - reset everything
+                container.style.display = 'grid';
+            }
+        }
+
+        // Helper function to show "no appointments" message
+        function showNoAppointmentsMessage(message) {
+            const container = document.querySelector('.appointments-container');
+            const existingEmpty = container.querySelector('.empty-state');
+
+            if (existingEmpty) {
+                existingEmpty.remove();
+            }
+
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.innerHTML = `
+                <i class="fas fa-calendar-times"></i>
+                <div class="empty-state-text">${message}</div>
+                <button class="btn btn-success" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add New Appointment
+                </button>
+            `;
+            emptyState.style.gridColumn = '1 / -1';
+            container.appendChild(emptyState);
+        }
+
+        // Modal functions
+        function openAddModal() {
+            console.log("Opening Add Appointment modal");
+            const modal = document.getElementById('addModal');
+            if (!modal) {
+                console.error("Add Appointment modal not found");
+                return;
+            }
+
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('appointment_date');
+            if (dateInput) {
+                dateInput.value = today;
+                dateInput.min = today;
+            }
+
+            // Filter time options for today
+            const timeSelect = document.getElementById('appointment_time');
+            if (timeSelect) {
+                filterPastTimeOptions(timeSelect);
+            }
+
+            // Reset doctor selection
+            const doctorSelect = document.getElementById('doctor_id');
+            if (doctorSelect) {
+                doctorSelect.selectedIndex = 0;
+            }
+
+            // Clear any previous patient selection
+            document.getElementById('user_id').value = '';
+            document.getElementById('patient_search').value = '';
+            document.getElementById('selected_patient_info').innerHTML = '<p class="no-patient-selected">No patient selected</p>';
+
+            // Show the modal
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+
+                // Focus on the patient search input
+                const searchInput = document.getElementById('patient_search');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }, 10);
+        }
+
+        function closeModal() {
+            console.log("Closing Add Appointment modal");
+            const modal = document.getElementById('addModal');
+            if (!modal) {
+                console.error("Add Appointment modal not found");
+                return;
+            }
+
+            // Remove active class for animation
+            modal.classList.remove('active');
+
+            // Hide after animation
+            setTimeout(() => {
+                modal.style.display = 'none';
+
+                // Reset form
+                const form = document.getElementById('addAppointmentForm');
+                if (form) {
+                    form.reset();
+                }
+
+                // Clear patient selection
+                document.getElementById('user_id').value = '';
+                document.getElementById('selected_patient_info').innerHTML = '<p class="no-patient-selected">No patient selected</p>';
+
+                // Hide search results
+                const searchResults = document.getElementById('patient_search_results');
+                if (searchResults) {
+                    searchResults.classList.remove('active');
+                    searchResults.innerHTML = '';
+                }
+            }, 300);
+        }
+
+        // Patient search functions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listener for patient search
+            const patientSearch = document.getElementById('patient_search');
+            if (patientSearch) {
+                patientSearch.addEventListener('input', debounce(searchPatients, 300));
+                patientSearch.addEventListener('focus', function() {
+                    if (this.value.trim().length >= 1) {
+                        searchPatients();
+                    }
+                });
+
+                // Close search results when clicking outside
+                document.addEventListener('click', function(e) {
+                    const searchContainer = document.querySelector('.search-container');
+                    const searchResults = document.getElementById('patient_search_results');
+
+                    if (searchContainer && searchResults &&
+                        !searchContainer.contains(e.target)) {
+                        searchResults.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // Debounce function to limit API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+
+        // Search patients function
+        function searchPatients() {
+            const searchInput = document.getElementById('patient_search');
+            const searchResults = document.getElementById('patient_search_results');
+
+            if (!searchInput || !searchResults) {
+                console.error("Search elements not found");
+                return;
+            }
+
+            const query = searchInput.value.trim();
+
+            // Only search if query is at least 1 character
+            if (query.length < 1) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            console.log("Searching for patients with query:", query);
+
+            // Show loading state
+            searchResults.innerHTML = '<div class="search-result-item">Searching...</div>';
+            searchResults.classList.add('active');
+
+            // Simulate API call with existing patient data
+            setTimeout(() => {
+                // Get all patients from the page
+                const patients = [];
+                {% for user in users %}
+                patients.push({
+                    id: {{ user.id }},
+                    name: "{{ user.name }}",
+                    age: {{ user.age }},
+                    phone: "{{ user.phone }}",
+                    email: "{{ user.email or '' }}"
+                });
+                {% endfor %}
+
+                console.log("All patients loaded:", patients);
+
+                // Filter patients based on search query
+                const lowerQuery = query.toLowerCase();
+                console.log("Search query (lowercase):", lowerQuery);
+
+                // Create a more flexible search function
+                const matchesQuery = (text, query) => {
+                    if (!text) return { match: false };
+
+                    console.log(`Checking if "${text}" matches "${query}"`);
+
+                    const lowerText = text.toLowerCase();
+
+                    // Exact match
+                    if (lowerText === query) {
+                        console.log(`  - MATCH: Exact match`);
+                        return { match: true, priority: 0, type: 'exact' };
+                    }
+
+                    // Starts with query
+                    if (lowerText.startsWith(query)) {
+                        console.log(`  - MATCH: Starts with query`);
+                        return { match: true, priority: 1, type: 'starts' };
+                    }
+
+                    // Any word starts with query
+                    const words = lowerText.split(' ');
+                    if (words.some(word => word.startsWith(query))) {
+                        console.log(`  - MATCH: Word starts with query`);
+                        return { match: true, priority: 2, type: 'word_starts' };
+                    }
+
+                    // Contains query
+                    if (lowerText.includes(query)) {
+                        console.log(`  - MATCH: Contains query`);
+                        return { match: true, priority: 3, type: 'contains' };
+                    }
+
+                    // Fuzzy match (allow for typos)
+                    if (query.length > 2) {
+                        // Check if most characters match in sequence
+                        let matchCount = 0;
+                        let lastMatchIndex = -1;
+
+                        for (let i = 0; i < query.length; i++) {
+                            const char = query[i];
+                            const index = lowerText.indexOf(char, lastMatchIndex + 1);
+
+                            if (index > -1) {
+                                matchCount++;
+                                lastMatchIndex = index;
+                            }
+                        }
+
+                        // If at least 70% of characters match in sequence
+                        if (matchCount >= query.length * 0.7) {
+                            console.log(`  - MATCH: Fuzzy match (${matchCount}/${query.length} chars)`);
+                            return { match: true, priority: 4, type: 'fuzzy' };
+                        }
+                    }
+
+                    console.log(`  - NO MATCH`);
+                    return { match: false };
+                };
+
+                const filteredPatients = [];
+
+                // If query is very short (1 character), show all patients but prioritize matches
+                const showAllPatients = query.length === 1;
+
+                // Process each patient
+                patients.forEach(patient => {
+                    // Check name match
+                    const nameMatch = matchesQuery(patient.name, lowerQuery);
+
+                    // Check phone match
+                    const phoneMatch = matchesQuery(patient.phone, query); // Phone is case-sensitive
+
+                    // Use the best match or include all if showing all patients
+                    if (nameMatch.match || phoneMatch.match || showAllPatients) {
+                        // Clone the patient object to avoid modifying the original
+                        const patientWithPriority = { ...patient };
+
+                        if (nameMatch.match && phoneMatch.match) {
+                            // Both match, use the better priority
+                            patientWithPriority.priority = Math.min(nameMatch.priority, phoneMatch.priority);
+                            patientWithPriority.matchType = nameMatch.priority <= phoneMatch.priority ?
+                                nameMatch.type : phoneMatch.type;
+                        } else if (nameMatch.match) {
+                            patientWithPriority.priority = nameMatch.priority;
+                            patientWithPriority.matchType = nameMatch.type;
+                        } else if (phoneMatch.match) {
+                            patientWithPriority.priority = phoneMatch.priority;
+                            patientWithPriority.matchType = phoneMatch.type;
+                        } else {
+                            // No match but including all patients
+                            patientWithPriority.priority = 999; // Lowest priority
+                            patientWithPriority.matchType = 'none';
+                        }
+
+                        filteredPatients.push(patientWithPriority);
+                    }
+                });
+
+                console.log("Filtered patients:", filteredPatients);
+
+                // Sort by priority
+                filteredPatients.sort((a, b) => a.priority - b.priority);
+
+                // Display results
+                if (filteredPatients.length === 0) {
+                    searchResults.innerHTML = '<div class="search-result-item">No patients found</div>';
+                } else {
+                    searchResults.innerHTML = '';
+                    filteredPatients.forEach(patient => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.dataset.id = patient.id;
+                        // Highlight the matching part of the name
+                        let displayName = patient.name;
+                        if (query.length > 0) {
+                            const lowerName = patient.name.toLowerCase();
+                            const lowerQuery = query.toLowerCase();
+
+                            // Different highlighting based on match type
+                            if (patient.matchType === 'exact' || patient.matchType === 'starts') {
+                                // Highlight the beginning of the name
+                                const index = lowerName.indexOf(lowerQuery);
+                                if (index >= 0) {
+                                    const before = patient.name.substring(0, index);
+                                    const match = patient.name.substring(index, index + query.length);
+                                    const after = patient.name.substring(index + query.length);
+                                    displayName = `${before}<strong>${match}</strong>${after}`;
+                                }
+                            } else if (patient.matchType === 'word_starts') {
+                                // Highlight the beginning of the matching word
+                                const words = patient.name.split(' ');
+                                const lowerWords = words.map(w => w.toLowerCase());
+                                const matchingWordIndex = lowerWords.findIndex(w => w.startsWith(lowerQuery));
+
+                                if (matchingWordIndex >= 0) {
+                                    words[matchingWordIndex] = `<strong>${words[matchingWordIndex].substring(0, query.length)}</strong>${words[matchingWordIndex].substring(query.length)}`;
+                                    displayName = words.join(' ');
+                                }
+                            } else if (patient.matchType === 'contains') {
+                                // Highlight all occurrences
+                                const index = lowerName.indexOf(lowerQuery);
+                                if (index >= 0) {
+                                    const before = patient.name.substring(0, index);
+                                    const match = patient.name.substring(index, index + query.length);
+                                    const after = patient.name.substring(index + query.length);
+                                    displayName = `${before}<strong>${match}</strong>${after}`;
+                                }
+                            } else if (patient.matchType === 'fuzzy') {
+                                // Just bold the name to indicate it's a fuzzy match
+                                displayName = `<span class="fuzzy-match">${patient.name}</span>`;
+                            }
+                        }
+
+                        // Get match type label
+                        let matchLabel = '';
+                        if (patient.matchType === 'exact') {
+                            matchLabel = '<span class="match-indicator exact">Exact match</span>';
+                        } else if (patient.matchType === 'starts') {
+                            matchLabel = '<span class="match-indicator starts">Starts with</span>';
+                        } else if (patient.matchType === 'word_starts') {
+                            matchLabel = '<span class="match-indicator word">Word match</span>';
+                        } else if (patient.matchType === 'contains') {
+                            matchLabel = '<span class="match-indicator contains">Contains</span>';
+                        } else if (patient.matchType === 'fuzzy') {
+                            matchLabel = '<span class="match-indicator fuzzy">Similar</span>';
+                        } else if (patient.matchType === 'none' && showAllPatients) {
+                            // No label for non-matching patients when showing all
+                            matchLabel = '';
+                        }
+
+                        resultItem.innerHTML = `
+                            <div class="patient-name">${displayName}</div>
+                            <div class="patient-details">
+                                <span><i class="fas fa-phone"></i> ${patient.phone}</span>
+                                <span><i class="fas fa-user"></i> ${patient.age} years</span>
+                                ${matchLabel}
+                            </div>
+                        `;
+
+                        // Add click event to select patient
+                        resultItem.addEventListener('click', function() {
+                            selectPatient(patient);
+                        });
+
+                        searchResults.appendChild(resultItem);
+                    });
+                }
+            }, 300);
+        }
+
+        // Select patient function
+        function selectPatient(patient) {
+            console.log("Patient selected:", patient);
+
+            const userIdInput = document.getElementById('user_id');
+            const patientSearchInput = document.getElementById('patient_search');
+            const selectedPatientInfo = document.getElementById('selected_patient_info');
+            const searchResults = document.getElementById('patient_search_results');
+
+            if (!userIdInput || !patientSearchInput || !selectedPatientInfo || !searchResults) {
+                console.error("Required elements not found");
+                return;
+            }
+
+            // Set the user ID
+            userIdInput.value = patient.id;
+
+            // Clear the search input
+            patientSearchInput.value = '';
+
+            // Hide search results
+            searchResults.classList.remove('active');
+
+            // Display selected patient info
+            const initials = patient.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            selectedPatientInfo.innerHTML = `
+                <div class="patient-card">
+                    <div class="patient-avatar">${initials}</div>
+                    <div class="patient-info">
+                        <div class="patient-name">${patient.name}</div>
+                        <div class="patient-details">
+                            <div class="detail-item"><i class="fas fa-phone"></i> ${patient.phone}</div>
+                            <div class="detail-item"><i class="fas fa-user"></i> ${patient.age} years</div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="change-patient" onclick="changePatient()">
+                    <i class="fas fa-exchange-alt"></i> Change patient
+                </button>
+            `;
+
+            // Focus on the next field (doctor selection)
+            const doctorSelect = document.getElementById('doctor_id');
+            if (doctorSelect) {
+                doctorSelect.focus();
+            }
+        }
+
+        // Change patient function
+        function changePatient() {
+            console.log("Changing patient selection");
+
+            // Clear the user ID
+            document.getElementById('user_id').value = '';
+
+            // Reset the selected patient info
+            document.getElementById('selected_patient_info').innerHTML = '<p class="no-patient-selected">No patient selected</p>';
+
+            // Focus on the search input
+            const searchInput = document.getElementById('patient_search');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+
+        // Submit appointment function
+        function submitAppointment() {
+            console.log("Submitting appointment");
+
+            // Get form values
+            const userId = document.getElementById('user_id').value;
+            const doctorId = document.getElementById('doctor_id').value;
+            const date = document.getElementById('appointment_date').value;
+            const time = document.getElementById('appointment_time').value;
+            const duration = document.getElementById('appointment_duration').value;
+            const notes = document.getElementById('notes').value;
+
+            console.log("Form data:", {
+                userId, doctorId, date, time, duration, notes
+            });
+
+            // Validate required fields
+            if (!userId) {
+                alert('Please select a patient');
+                return;
+            }
+
+            if (!doctorId) {
+                alert('Please select a doctor');
+                document.getElementById('doctor_id').focus();
+                return;
+            }
+
+            if (!date) {
+                alert('Please select a date');
+                document.getElementById('appointment_date').focus();
+                return;
+            }
+
+            if (!time) {
+                alert('Please select a time');
+                document.getElementById('appointment_time').focus();
+                return;
+            }
+
+            // Check if date is today and time is in the past
+            if (date === new Date().toISOString().split('T')[0]) {
+                // Parse the time
+                let [hours, minutes] = time.split(':');
+                minutes = minutes.substring(0, 2);
+                const isPM = time.toLowerCase().includes('pm');
+
+                let timeHour = parseInt(hours);
+                const timeMinute = parseInt(minutes);
+
+                // Convert to 24-hour format
+                if (isPM && timeHour < 12) timeHour += 12;
+                if (!isPM && timeHour === 12) timeHour = 0;
+
+                // Get current time
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+
+                // Check if time is in the past
+                if (timeHour < currentHour || (timeHour === currentHour && timeMinute <= currentMinute)) {
+                    alert('Cannot schedule an appointment for a past time. Please select a future time.');
+                    document.getElementById('appointment_time').focus();
+                    return;
+                }
+            }
+
+            // Check if the selected date is a working day for the doctor
+            const selectedDate = new Date(date);
+            if (!isDoctorWorkingDay(doctorId, selectedDate)) {
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayName = dayNames[selectedDate.getDay()];
+
+                // Get the next working day
+                const nextWorkingDay = getNextWorkingDay(doctorId, selectedDate);
+
+                if (nextWorkingDay) {
+                    const formattedNextDay = nextWorkingDay.toISOString().split('T')[0];
+                    const nextDayName = dayNames[nextWorkingDay.getDay()];
+
+                    if (confirm(`Dr. ${document.getElementById('doctor_id').options[document.getElementById('doctor_id').selectedIndex].text.split(' ')[1]} doesn't work on ${dayName}s.\n\nWould you like to schedule for their next working day (${nextDayName}, ${formattedNextDay})?`)) {
+                        document.getElementById('appointment_date').value = formattedNextDay;
+                        date = formattedNextDay;
+                    } else {
+                        return;
+                    }
+                } else {
+                    alert(`The selected doctor doesn't work on ${dayName}s and no upcoming working days were found.`);
+                    return;
+                }
+            }
+
+            // Show loading state
+            const submitBtn = document.querySelector('#addAppointmentForm .submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            }
+
+            // Check if force booking is enabled
+            const forceBook = document.getElementById('force_book').checked;
+            console.log("Force booking:", forceBook);
+
+            // Submit the form
+            const formData = new FormData();
+            formData.append('user_id', userId);
+            formData.append('doctor_id', doctorId);
+            formData.append('appointment_date', date);
+            formData.append('appointment_time', time);
+            formData.append('duration', duration);
+            formData.append('notes', notes);
+            formData.append('force_book', forceBook);
+
+            fetch('{{ url_for("add_appointment") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Check if the response contains JSON with conflict information
+                    return response.text().then(text => {
+                        try {
+                            // Try to parse as JSON
+                            const data = JSON.parse(text);
+                            if (data.conflict) {
+                                return { conflict: true, data: data };
+                            } else {
+                                throw new Error('Network response was not ok');
+                            }
+                        } catch (e) {
+                            // If not JSON, just return the HTML
+                            return { html: text };
+                        }
+                    });
+                }
+                return { success: true };
+            })
+            .then(result => {
+                if (result.success) {
+                    console.log("Appointment created successfully");
+                    closeModal();
+                    window.location.reload();
+                } else if (result.conflict) {
+                    // Handle conflict
+                    const data = result.data;
+                    console.log("Conflict detected:", data);
+
+                    // If next_available time is provided, use it
+                    if (data.next_available) {
+                        const confirmMessage = `The selected time slot is already booked.\n\nNext available time: ${data.next_available}\n\nWould you like to use this time instead?`;
+
+                        if (confirm(confirmMessage)) {
+                            // Update the time input with the next available time
+                            document.getElementById('appointment_time').value = data.next_available;
+
+                            // Reset button state
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-check"></i> Add Appointment';
+                            }
+
+                            // Alert the user that the time has been updated
+                            alert(`Time updated to ${data.next_available}. Please review and submit again.`);
+                            return;
+                        }
+                    }
+
+                    // If available slots are provided
+                    if (data.available_slots && data.available_slots.length > 0) {
+                        // Format available slots for display
+                        const availableSlots = data.available_slots.slice(0, 5).join(", ");
+                        const moreSlots = data.available_slots.length > 5 ? ` and ${data.available_slots.length - 5} more` : '';
+
+                        const confirmMessage = `The selected time slot is already booked.\n\nAvailable times: ${availableSlots}${moreSlots}\n\nWould you like to force book this appointment anyway?`;
+
+                        if (confirm(confirmMessage)) {
+                            // User wants to force book - update the form and resubmit
+                            document.getElementById('force_book').checked = true;
+                            submitAppointment();
+                        } else {
+                            // If they don't want to force book, update the time dropdown with available slots
+                            const timeInput = document.getElementById('appointment_time');
+                            if (timeInput) {
+                                // Clear existing options
+                                timeInput.innerHTML = '';
+
+                                // Add a default empty option
+                                const defaultOption = document.createElement('option');
+                                defaultOption.value = '';
+                                defaultOption.text = 'Select Time';
+                                timeInput.add(defaultOption);
+
+                                // Add available slots as options
+                                data.available_slots.forEach(slot => {
+                                    const option = document.createElement('option');
+                                    option.value = slot;
+                                    option.text = slot;
+                                    timeInput.add(option);
+                                });
+
+                                // Reset button state
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Add Appointment';
+                                }
+
+                                alert('Please select from the available time slots.');
+                            }
+                        }
+                    } else if (data.next_day) {
+                        // No slots available today, suggest next day
+                        const confirmMessage = `No available time slots on ${date}. Would you like to try ${data.next_day} instead?`;
+
+                        if (confirm(confirmMessage)) {
+                            // Update the date input with the suggested next day
+                            document.getElementById('appointment_date').value = data.next_day;
+
+                            // Reset button state
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-check"></i> Add Appointment';
+                            }
+                        } else if (confirm('Would you like to force book this appointment anyway?')) {
+                            // User wants to force book - update the form and resubmit
+                            document.getElementById('force_book').checked = true;
+                            submitAppointment();
+                        } else {
+                            // Reset button state
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-check"></i> Add Appointment';
+                            }
+                        }
+                    } else {
+                        // Generic conflict message
+                        alert(data.message || 'Failed to create appointment due to a time conflict. Please select a different time.');
+
+                        // Reset button state
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fas fa-check"></i> Add Appointment';
+                        }
+                    }
+                } else {
+                    // Regular success case with HTML response
+                    console.log("Appointment created successfully");
+                    closeModal();
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while creating the appointment. Please try again.');
+
+                // Reset button state
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Add Appointment';
+                }
+            });
+        }
+
+        // Walk-in appointment functions
+        function openWalkInModal() {
+            console.log("openWalkInModal called");
+            const modal = document.getElementById('walkInModal');
+            if (!modal) {
+                console.error("Modal element 'walkInModal' not found!");
+                return;
+            }
+            console.log("Modal element found:", modal);
+
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('walkin-date');
+            if (dateInput) {
+                dateInput.value = today;
+                dateInput.min = today;
+                console.log("Set default date to:", today);
+            }
+
+            // Filter time options for today
+            const timeSelect = document.getElementById('walkin-time');
+            if (timeSelect) {
+                filterPastTimeOptions(timeSelect);
+            }
+
+            // Reset doctor selection
+            const doctorSelect = document.getElementById('walkin-doctor');
+            if (doctorSelect) {
+                doctorSelect.selectedIndex = 0;
+            }
+
+            // Reset form and show first tab
+            resetWalkInForm();
+
+            // Show modal
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            console.log("Modal displayed");
+        }
+
+        function closeWalkInModal() {
+            console.log("closeWalkInModal called");
+            const modal = document.getElementById('walkInModal');
+            if (!modal) {
+                console.error("Modal element 'walkInModal' not found!");
+                return;
+            }
+
+            // Remove active class for animation
+            modal.classList.remove('active');
+
+            // Hide after animation
+            setTimeout(() => {
+                modal.style.display = 'none';
+                resetWalkInForm();
+                console.log("Modal hidden");
+            }, 300);
+        }
+
+        function resetWalkInForm() {
+            // Reset all form fields
+            const inputs = document.querySelectorAll('#walkInModal input, #walkInModal select, #walkInModal textarea');
+            inputs.forEach(input => {
+                if (input.type === 'date' && input.id === 'walkin-date') {
+                    // Keep today's date for the appointment date
+                    input.value = new Date().toISOString().split('T')[0];
+                } else if (input.id === 'walkin-duration') {
+                    // Keep default duration
+                    input.value = '30';
+                } else if (input.id === 'walkin-time') {
+                    // Reset time but keep filtering
+                    input.value = '';
+                    // Re-apply time filtering for today
+                    filterPastTimeOptions(input);
+                } else {
+                    input.value = '';
+                }
+            });
+
+            // Show first tab
+            goToPatientInfo();
+        }
+
+        function goToPatientInfo() {
+            console.log("goToPatientInfo called");
+
+            // Show patient info tab
+            document.querySelectorAll('.form-tab').forEach(tab => {
+                tab.classList.remove('active');
+                console.log(`Removed active class from tab: ${tab.getAttribute('data-tab')}`);
+            });
+
+            const patientTab = document.querySelector('.form-tab[data-tab="patient-info"]');
+            if (patientTab) {
+                patientTab.classList.add('active');
+                console.log("Added active class to patient-info tab");
+            } else {
+                console.error("Could not find patient-info tab");
+            }
+
+            // Show patient info section
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+                console.log(`Removed active class from section: ${section.id}`);
+            });
+
+            const patientSection = document.getElementById('patient-info-section');
+            if (patientSection) {
+                patientSection.classList.add('active');
+                console.log("Added active class to patient-info-section");
+
+                // Focus on the first field in the patient section
+                const nameInput = document.getElementById('patient-name');
+                if (nameInput) {
+                    nameInput.focus();
+                }
+            } else {
+                console.error("Could not find patient-info-section");
+            }
+        }
+
+        function goToAppointmentInfo() {
+            console.log("goToAppointmentInfo called");
+
+            // Validate patient info first
+            const name = document.getElementById('patient-name').value.trim();
+            const age = document.getElementById('patient-age').value.trim();
+            const phone = document.getElementById('patient-phone').value.trim();
+
+            if (!name) {
+                alert('Please enter the patient\'s name');
+                document.getElementById('patient-name').focus();
+                return false;
+            }
+
+            if (!age) {
+                alert('Please enter the patient\'s age');
+                document.getElementById('patient-age').focus();
+                return false;
+            }
+
+            if (!phone) {
+                alert('Please enter the patient\'s phone number');
+                document.getElementById('patient-phone').focus();
+                return false;
+            }
+
+            // Show appointment info tab
+            document.querySelectorAll('.form-tab').forEach(tab => {
+                tab.classList.remove('active');
+                console.log(`Removed active class from tab: ${tab.getAttribute('data-tab')}`);
+            });
+
+            const appointmentTab = document.querySelector('.form-tab[data-tab="appointment-info"]');
+            if (appointmentTab) {
+                appointmentTab.classList.add('active');
+                console.log("Added active class to appointment-info tab");
+            } else {
+                console.error("Could not find appointment-info tab");
+            }
+
+            // Show appointment info section
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+                console.log(`Removed active class from section: ${section.id}`);
+            });
+
+            const appointmentSection = document.getElementById('appointment-info-section');
+            if (appointmentSection) {
+                appointmentSection.classList.add('active');
+                console.log("Added active class to appointment-info-section");
+
+                // Focus on the first field in the appointment section
+                const doctorSelect = document.getElementById('walkin-doctor');
+                if (doctorSelect) {
+                    doctorSelect.focus();
+                }
+            } else {
+                console.error("Could not find appointment-info-section");
+            }
+
+            return true;
+        }
+
+        function submitWalkInAppointment() {
+            console.log("submitWalkInAppointment called");
+
+            // Get patient info
+            const name = document.getElementById('patient-name').value.trim();
+            const age = document.getElementById('patient-age').value.trim();
+            const phone = document.getElementById('patient-phone').value.trim();
+            const email = document.getElementById('patient-email').value.trim();
+            const address = document.getElementById('patient-address').value.trim();
+
+            // Get appointment info
+            const doctorId = document.getElementById('walkin-doctor').value;
+            const date = document.getElementById('walkin-date').value;
+            const time = document.getElementById('walkin-time').value;
+            const duration = document.getElementById('walkin-duration').value;
+            const notes = document.getElementById('walkin-notes').value.trim();
+
+            console.log("Form data collected:", {
+                patient: { name, age, phone, email },
+                appointment: { doctorId, date, time, duration }
+            });
+
+            // Validate required fields
+            if (!doctorId) {
+                alert('Please select a doctor');
+                document.getElementById('walkin-doctor').focus();
+                return;
+            }
+
+            if (!date) {
+                alert('Please select a date');
+                document.getElementById('walkin-date').focus();
+                return;
+            }
+
+            if (!time) {
+                alert('Please select a time');
+                document.getElementById('walkin-time').focus();
+                return;
+            }
+
+            // Check if date is today and time is in the past
+            if (date === new Date().toISOString().split('T')[0]) {
+                // Parse the time
+                let [hours, minutes] = time.split(':');
+                minutes = minutes.substring(0, 2);
+                const isPM = time.toLowerCase().includes('pm');
+
+                let timeHour = parseInt(hours);
+                const timeMinute = parseInt(minutes);
+
+                // Convert to 24-hour format
+                if (isPM && timeHour < 12) timeHour += 12;
+                if (!isPM && timeHour === 12) timeHour = 0;
+
+                // Get current time
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+
+                // Check if time is in the past
+                if (timeHour < currentHour || (timeHour === currentHour && timeMinute <= currentMinute)) {
+                    alert('Cannot schedule an appointment for a past time. Please select a future time.');
+                    document.getElementById('walkin-time').focus();
+                    return;
+                }
+            }
+
+            // Check if the selected date is a working day for the doctor
+            const selectedDate = new Date(date);
+            if (!isDoctorWorkingDay(doctorId, selectedDate)) {
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayName = dayNames[selectedDate.getDay()];
+
+                // Get the next working day
+                const nextWorkingDay = getNextWorkingDay(doctorId, selectedDate);
+
+                if (nextWorkingDay) {
+                    const formattedNextDay = nextWorkingDay.toISOString().split('T')[0];
+                    const nextDayName = dayNames[nextWorkingDay.getDay()];
+
+                    if (confirm(`Dr. ${document.getElementById('walkin-doctor').options[document.getElementById('walkin-doctor').selectedIndex].text.split(' ')[1]} doesn't work on ${dayName}s.\n\nWould you like to schedule for their next working day (${nextDayName}, ${formattedNextDay})?`)) {
+                        document.getElementById('walkin-date').value = formattedNextDay;
+                        date = formattedNextDay;
+                    } else {
+                        return;
+                    }
+                } else {
+                    alert(`The selected doctor doesn't work on ${dayName}s and no upcoming working days were found.`);
+                    return;
+                }
+            }
+
+            // Show loading state
+            const submitBtn = document.querySelector('#appointment-info-section .submit-btn');
+            if (submitBtn) {
+                console.log("Setting submit button to loading state");
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            } else {
+                console.error("Submit button not found");
+            }
+
+            // Create password in format name@age
+            const firstName = name.split(' ')[0].toLowerCase();
+            const password = `${firstName}@${age}`;
+            console.log("Generated password:", password);
+
+            // Check if force booking is enabled
+            const forceBook = document.getElementById('walkin-force-book').checked;
+            console.log("Force booking:", forceBook);
+
+            // Prepare request data
+            const requestData = {
+                patient: {
+                    name: name,
+                    age: age,
+                    phone: phone,
+                    email: email,
+                    address: address,
+                    password: password
+                },
+                appointment: {
+                    doctor_id: doctorId,
+                    date: date,
+                    time: time,
+                    duration: duration,
+                    notes: notes,
+                    force_book: forceBook
+                }
+            };
+
+            console.log("Sending request to server:", requestData);
+
+            // Send data to server
+            fetch('/api/reception/add_walkin_appointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            })
+            .then(response => {
+                console.log("Server response status:", response.status);
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Server response data:", data);
+                if (data.success) {
+                    // Show success message with login details
+                    const successMessage = `Walk-in appointment created successfully!\n\nPatient login details:\nUsername: ${phone}\nPassword: ${password}\n\nPlease share these details with the patient.`;
+                    console.log("Success:", successMessage);
+                    alert(successMessage);
+                    closeWalkInModal();
+                    window.location.reload();
+                } else if (data.conflict) {
+                    console.log("Conflict detected:", data);
+
+                    // Handle time slot conflict
+                    if (data.available_slots && data.available_slots.length > 0) {
+                        // If next_available time is provided, use it
+                        if (data.next_available) {
+                            const confirmMessage = `The selected time slot is already booked.\n\nNext available time: ${data.next_available}\n\nWould you like to use this time instead?`;
+
+                            if (confirm(confirmMessage)) {
+                                // Update the time input with the next available time
+                                document.getElementById('walkin-time').value = data.next_available;
+
+                                // Reset button state
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Appointment';
+                                }
+
+                                // Alert the user that the time has been updated
+                                alert(`Time updated to ${data.next_available}. Please review and submit again.`);
+                                return;
+                            }
+                        }
+
+                        // Format available slots for display
+                        const availableSlots = data.available_slots.slice(0, 5).join(", ");
+                        const moreSlots = data.available_slots.length > 5 ? ` and ${data.available_slots.length - 5} more` : '';
+
+                        const confirmMessage = `The selected time slot is already booked.\n\nAvailable times: ${availableSlots}${moreSlots}\n\nWould you like to force book this appointment anyway?`;
+
+                        if (confirm(confirmMessage)) {
+                            // User wants to force book - update the request and resubmit
+                            requestData.appointment.force_book = true;
+
+                            // Resubmit with force_book=true
+                            fetch('/api/reception/add_walkin_appointment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(requestData),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    const successMessage = `Walk-in appointment created successfully!\n\nPatient login details:\nUsername: ${phone}\nPassword: ${password}\n\nPlease share these details with the patient.`;
+                                    alert(successMessage);
+                                    closeWalkInModal();
+                                    window.location.reload();
+                                } else {
+                                    alert(data.message || 'Failed to create appointment. Please try again.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An error occurred while creating the appointment. Please try again.');
+                            });
+                        } else {
+                            // If they don't want to force book, update the time dropdown with available slots
+                            const timeInput = document.getElementById('walkin-time');
+                            if (timeInput) {
+                                // Create a select element to replace the time input
+                                const timeSelect = document.createElement('select');
+                                timeSelect.id = 'walkin-time';
+                                timeSelect.className = 'form-control';
+
+                                // Add available slots as options
+                                data.available_slots.forEach(slot => {
+                                    const option = document.createElement('option');
+                                    option.value = slot;
+                                    option.text = slot;
+                                    timeSelect.appendChild(option);
+                                });
+
+                                // Replace the input with the select
+                                timeInput.parentNode.replaceChild(timeSelect, timeInput);
+
+                                // Reset button state
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Appointment';
+                                }
+
+                                alert('Please select from the available time slots.');
+                            } else {
+                                // Reset button state
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Appointment';
+                                }
+                            }
+                        }
+                    } else if (data.next_day) {
+                        // No slots available today, suggest next day
+                        const confirmMessage = `No available time slots on ${date}. Would you like to try ${data.next_day} instead?`;
+
+                        if (confirm(confirmMessage)) {
+                            // Update the date input with the suggested next day
+                            document.getElementById('walkin-date').value = data.next_day;
+
+                            // Reset button state
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Appointment';
+                            }
+                        } else if (confirm('Would you like to force book this appointment anyway?')) {
+                            // User wants to force book - update the request and resubmit
+                            requestData.appointment.force_book = true;
+
+                            // Resubmit with force_book=true
+                            fetch('/api/reception/add_walkin_appointment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(requestData),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    const successMessage = `Walk-in appointment created successfully!\n\nPatient login details:\nUsername: ${phone}\nPassword: ${password}\n\nPlease share these details with the patient.`;
+                                    alert(successMessage);
+                                    closeWalkInModal();
+                                    window.location.reload();
+                                } else {
+                                    alert(data.message || 'Failed to create appointment. Please try again.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An error occurred while creating the appointment. Please try again.');
+                            });
+                        } else {
+                            // Reset button state
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Appointment';
+                            }
+                        }
+                    }
+                } else {
+                    console.error("API error:", data.message);
+                    alert(data.message || 'Failed to create appointment. Please try again.');
+
+                    // Reset button state
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Appointment';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while creating the appointment. Please try again.');
+
+                // Reset button state
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Appointment';
+                }
+            });
+        }
+
+        // Suggest new date functions
+        function suggestNewDate(appointmentId) {
+            // Get the modal element
+            const modal = document.getElementById('suggestDateModal');
+            if (!modal) {
+                alert("Error: Suggest date modal not found!");
+                return;
+            }
+
+            // Get the hidden input for appointment ID
+            const hiddenInput = document.getElementById('suggest-appointment-id');
+            if (!hiddenInput) {
+                alert("Error: Hidden input field not found!");
+                return;
+            }
+
+            // Set appointment ID
+            hiddenInput.value = appointmentId;
+
+            // Set minimum date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowFormatted = tomorrow.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+            const dateInput = document.getElementById('suggested-date');
+            if (dateInput) {
+                dateInput.min = tomorrowFormatted;
+                dateInput.value = tomorrowFormatted; // Set default value to tomorrow
+            }
+
+            // Get the appointment card to extract patient info
+            const card = document.querySelector(`.appointment-card[data-id="${appointmentId}"]`);
+            if (card) {
+                const patientName = card.querySelector('.detail-value strong')?.textContent || 'this patient';
+                const modalTitle = modal.querySelector('.modal-title');
+                if (modalTitle) {
+                    modalTitle.textContent = `Suggest New Date for ${patientName}`;
+                }
+
+                // If this is a response to a patient suggestion, update the reason placeholder
+                if (card.getAttribute('data-status') === 'patient_suggested') {
+                    const reasonInput = document.getElementById('suggestion-reason');
+                    if (reasonInput) {
+                        reasonInput.placeholder = "Explain why you're suggesting a different date/time than what the patient requested";
+                    }
+                }
+            }
+
+            // Show the modal with animation
+            modal.style.display = 'block';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        }
+
+        function closeSuggestModal() {
+            const modal = document.getElementById('suggestDateModal');
+            if (!modal) {
+                return;
+            }
+
+            // Remove active class first (for animation)
+            modal.classList.remove('active');
+
+            // Hide the modal after a short delay
+            setTimeout(() => {
+                modal.style.display = 'none';
+
+                // Reset form fields
+                const dateInput = document.getElementById('suggested-date');
+                const timeInput = document.getElementById('suggested-time');
+                const reasonInput = document.getElementById('suggestion-reason');
+
+                if (dateInput) dateInput.value = '';
+                if (timeInput) timeInput.value = '';
+                if (reasonInput) {
+                    reasonInput.value = '';
+                    reasonInput.placeholder = "Explain why you're suggesting a new date/time";
+                }
+
+                // Reset modal title
+                const modalTitle = modal.querySelector('.modal-title');
+                if (modalTitle) {
+                    modalTitle.textContent = 'Suggest New Appointment Date';
+                }
+            }, 300);
+        }
+
+        function submitSuggestion() {
+            // Get form elements
+            const appointmentIdInput = document.getElementById('suggest-appointment-id');
+            const dateInput = document.getElementById('suggested-date');
+            const timeInput = document.getElementById('suggested-time');
+            const reasonInput = document.getElementById('suggestion-reason');
+
+            // Validate form elements exist
+            if (!appointmentIdInput || !dateInput || !timeInput) {
+                alert("Error: Form elements not found. Please refresh the page and try again.");
+                return;
+            }
+
+            // Get form values
+            const appointmentId = appointmentIdInput.value;
+            const suggestedDate = dateInput.value;
+            const suggestedTime = timeInput.value;
+            const reason = reasonInput ? reasonInput.value : '';
+
+            // Validate required fields
+            if (!appointmentId) {
+                alert('Error: Appointment ID is missing');
+                return;
+            }
+
+            if (!suggestedDate) {
+                alert('Please select a date');
+                dateInput.focus();
+                return;
+            }
+
+            if (!suggestedTime) {
+                alert('Please select a time');
+                timeInput.focus();
+                return;
+            }
+
+            // Get the appointment card to check status
+            const card = document.querySelector(`.appointment-card[data-id="${appointmentId}"]`);
+            const isPatientSuggested = card && card.getAttribute('data-status') === 'patient_suggested';
+
+            // Show loading state
+            const submitBtn = document.querySelector('.modal-body .submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            }
+
+            // Send the suggestion to the server
+            fetch('/api/reception/suggest_date', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    appointment_id: appointmentId,
+                    suggested_date: suggestedDate,
+                    suggested_time: suggestedTime,
+                    reason: reason,
+                    is_counter_offer: isPatientSuggested
+                }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Success message based on whether this was a counter-offer
+                    const message = isPatientSuggested
+                        ? 'Your counter-offer has been sent to the patient!'
+                        : 'Date suggestion sent to patient successfully!';
+
+                    alert(message);
+                    closeSuggestModal();
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to send suggestion. Please try again.');
+
+                    // Reset button state
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Send Suggestion';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while sending your suggestion. Please try again.');
+
+                // Reset button state
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Send Suggestion';
+                }
+            });
+        }
+
+        // Appointment actions
+        function confirmAppointment(appointmentId) {
+            const timeSelect = document.getElementById(`time-${appointmentId}`);
+            const durationSelect = document.getElementById(`duration-${appointmentId}`);
+
+            // Check if there's a force booking checkbox for this appointment
+            const forceBookCheckbox = document.getElementById(`force-book-${appointmentId}`);
+            const forceBook = forceBookCheckbox ? forceBookCheckbox.checked : false;
+
+            const selectedTime = timeSelect.value;
+            const selectedDuration = durationSelect.value;
+
+            if (!selectedTime) {
+                alert('Please select a time for the appointment');
+                return;
+            }
+
+            // If force booking is not checked, ask for confirmation
+            if (forceBook && !confirm('You are about to force book this appointment, which may conflict with existing appointments. Continue?')) {
+                return;
+            }
+
+            fetch('/api/reception/confirm_appointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    appointment_id: appointmentId,
+                    time: selectedTime,
+                    duration: selectedDuration,
+                    force_book: forceBook
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Appointment confirmed successfully!');
+                    window.location.reload();
+                } else if (data.conflict) {
+                    console.log("Conflict detected:", data);
+
+                    // Handle time slot conflict
+                    if (data.available_slots && data.available_slots.length > 0) {
+                        // Format available slots for display
+                        const availableSlots = data.available_slots.slice(0, 5).join(", ");
+                        const moreSlots = data.available_slots.length > 5 ? ` and ${data.available_slots.length - 5} more` : '';
+
+                        // If next_available time is provided, use it
+                        if (data.next_available) {
+                            const confirmMessage = `The selected time slot is already booked.\n\nNext available time: ${data.next_available}\n\nWould you like to use this time instead?`;
+
+                            if (confirm(confirmMessage)) {
+                                // Update the time select with the next available time
+                                const timeSelect = document.getElementById(`time-${appointmentId}`);
+                                if (timeSelect) {
+                                    // Check if the option exists, if not create it
+                                    let optionExists = false;
+                                    for (let i = 0; i < timeSelect.options.length; i++) {
+                                        if (timeSelect.options[i].value === data.next_available) {
+                                            optionExists = true;
+                                            timeSelect.selectedIndex = i;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!optionExists) {
+                                        const newOption = document.createElement('option');
+                                        newOption.value = data.next_available;
+                                        newOption.text = data.next_available;
+                                        timeSelect.add(newOption);
+                                        timeSelect.value = data.next_available;
+                                    }
+
+                                    // Try again with the new time
+                                    confirmAppointment(appointmentId);
+                                }
+                                return;
+                            }
+                        }
+
+                        // If user didn't choose next available or it wasn't provided
+                        const confirmMessage = `The selected time slot is already booked.\n\nAvailable times: ${availableSlots}${moreSlots}\n\nWould you like to force book this appointment anyway?`;
+
+                        if (confirm(confirmMessage)) {
+                            // User wants to force book - resubmit with force_book=true
+                            fetch('/api/reception/confirm_appointment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    appointment_id: appointmentId,
+                                    time: selectedTime,
+                                    duration: selectedDuration,
+                                    force_book: true
+                                }),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Appointment confirmed successfully!');
+                                    window.location.reload();
+                                } else {
+                                    alert(data.message || 'Failed to confirm appointment. Please try again.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An error occurred. Please try again.');
+                            });
+                        } else {
+                            // If they don't want to force book, let them select from available slots
+                            const timeSelect = document.getElementById(`time-${appointmentId}`);
+                            if (timeSelect && data.available_slots.length > 0) {
+                                // Clear existing options except the first empty one
+                                while (timeSelect.options.length > 1) {
+                                    timeSelect.remove(1);
+                                }
+
+                                // Add available slots as options
+                                data.available_slots.forEach(slot => {
+                                    const option = document.createElement('option');
+                                    option.value = slot;
+                                    option.text = slot;
+                                    timeSelect.add(option);
+                                });
+
+                                // Select the first available slot
+                                timeSelect.selectedIndex = 1;
+
+                                alert('Please select from the available time slots.');
+                            }
+                        }
+                    } else if (data.next_day) {
+                        // No slots available today, suggest next day
+                        const confirmMessage = `No available time slots on this day. Would you like to suggest ${data.next_day} to the patient instead?`;
+
+                        if (confirm(confirmMessage)) {
+                            // Open the suggest date modal with the next day
+                            suggestNewDate(appointmentId);
+
+                            // Set the date to the suggested next day
+                            setTimeout(() => {
+                                const dateInput = document.getElementById('suggested-date');
+                                if (dateInput) {
+                                    dateInput.value = data.next_day;
+                                }
+                            }, 500);
+                        } else if (confirm('Would you like to force book this appointment anyway?')) {
+                            // User wants to force book - resubmit with force_book=true
+                            fetch('/api/reception/confirm_appointment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    appointment_id: appointmentId,
+                                    time: selectedTime,
+                                    duration: selectedDuration,
+                                    force_book: true
+                                }),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Appointment confirmed successfully!');
+                                    window.location.reload();
+                                } else {
+                                    alert(data.message || 'Failed to confirm appointment. Please try again.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An error occurred. Please try again.');
+                            });
+                        }
+                    } else {
+                        alert(data.message || 'Failed to confirm appointment due to a time conflict. Please select a different time.');
+                    }
+                } else {
+                    alert(data.message || 'Failed to confirm appointment. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+
+        function rejectAppointment(appointmentId) {
+            if (confirm('Are you sure you want to reject this appointment request?')) {
+                fetch('/api/reception/reject_appointment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        appointment_id: appointmentId
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Appointment rejected successfully!');
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Failed to reject appointment. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            }
+        }
+
+        // Function to check if an appointment time has started
+        function hasAppointmentStarted(dateStr, timeStr) {
+            if (!dateStr || !timeStr) return false;
+
+            const now = new Date();
+            const appointmentDate = new Date(dateStr);
+
+            // Set the appointment date to midnight for date comparison
+            const appointmentDateOnly = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate());
+            const todayDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            // If appointment date is in the future, it hasn't started
+            if (appointmentDateOnly > todayDateOnly) return false;
+
+            // If appointment date is in the past, it has started
+            if (appointmentDateOnly < todayDateOnly) return true;
+
+            // If we're on the same day, check the time
+            // Parse the time string (e.g., "09:00 AM")
+            let [hours, minutes] = timeStr.split(':');
+            minutes = minutes.substring(0, 2);
+            const isPM = timeStr.toLowerCase().includes('pm');
+
+            hours = parseInt(hours);
+            minutes = parseInt(minutes);
+
+            // Convert to 24-hour format
+            if (isPM && hours < 12) hours += 12;
+            if (!isPM && hours === 12) hours = 0;
+
+            // Create a date object with the appointment time
+            const appointmentDateTime = new Date(appointmentDate);
+            appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+            // Compare with current time
+            return now >= appointmentDateTime;
+        }
+
+        // Function to update all completion buttons
+        function updateCompletionButtons() {
+            const completeButtons = document.querySelectorAll('[id^="complete-btn-"]');
+
+            completeButtons.forEach(button => {
+                const dateStr = button.getAttribute('data-date');
+                const timeStr = button.getAttribute('data-time');
+
+                if (hasAppointmentStarted(dateStr, timeStr)) {
+                    // Enable the button
+                    button.disabled = false;
+                    button.classList.remove('disabled');
+                    button.title = 'Mark this appointment as completed';
+                } else {
+                    // Disable the button
+                    button.disabled = true;
+                    button.classList.add('disabled');
+                    button.title = 'Cannot mark as completed until the appointment time has started';
+                }
+            });
+        }
+
+        function markCompleted(appointmentId) {
+            const button = document.getElementById(`complete-btn-${appointmentId}`);
+            const dateStr = button.getAttribute('data-date');
+            const timeStr = button.getAttribute('data-time');
+
+            if (!hasAppointmentStarted(dateStr, timeStr)) {
+                alert('This appointment cannot be marked as completed until the scheduled time has started.');
+                return;
+            }
+
+            if (confirm('Mark this appointment as completed?')) {
+                fetch('/api/reception/complete_appointment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        appointment_id: appointmentId
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Appointment marked as completed!');
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Failed to update appointment. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            }
+        }
+
+        function cancelAppointment(appointmentId) {
+            if (confirm('Are you sure you want to cancel this appointment?')) {
+                fetch('/api/reception/cancel_appointment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        appointment_id: appointmentId
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Appointment cancelled successfully!');
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Failed to cancel appointment. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            }
+        }
+
+        function acceptPatientSuggestion(appointmentId) {
+            // Get the appointment card to extract patient info
+            const card = document.querySelector(`.appointment-card[data-id="${appointmentId}"]`);
+            let patientName = 'this patient';
+            let suggestedDateTime = '';
+
+            if (card) {
+                patientName = card.querySelector('.detail-value strong')?.textContent || 'this patient';
+                // Fix: Get the text content properly from the suggested-datetime element
+                const suggestedDateTimeElement = card.querySelector('.suggested-datetime');
+                if (suggestedDateTimeElement) {
+                    // Extract just the date/time part, removing the "Patient suggested:" prefix
+                    const fullText = suggestedDateTimeElement.textContent || '';
+                    suggestedDateTime = fullText.replace('Patient suggested:', '').trim();
+                    console.log("Extracted suggested date/time:", suggestedDateTime);
+                }
+            }
+
+            // Confirmation message with patient details
+            const confirmMessage = `Are you sure you want to accept ${patientName}'s suggested time${suggestedDateTime ? ` (${suggestedDateTime})` : ''}?`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Show loading state on the button
+            const acceptBtn = card?.querySelector('.btn-success');
+            if (acceptBtn) {
+                acceptBtn.disabled = true;
+                acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';
+            }
+
+            console.log("Sending accept request for appointment ID:", appointmentId);
+
+            // Use the full URL with the correct port (5001)
+            fetch('http://127.0.0.1:5001/api/reception/accept_patient_suggestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    appointment_id: appointmentId
+                }),
+            })
+            .then(response => {
+                console.log("Received response:", response.status);
+                // Parse the response as JSON regardless of status
+                return response.json().catch(e => {
+                    // If parsing fails, create a simple error object
+                    console.error("Failed to parse JSON response:", e);
+                    return { success: false, message: "Invalid response format from server" };
+                });
+            })
+            .then(data => {
+                console.log("Response data:", data);
+                if (data.success) {
+                    alert(`You've accepted ${patientName}'s suggested appointment time!`);
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to accept suggestion. Please try again.');
+
+                    // Reset button state
+                    if (acceptBtn) {
+                        acceptBtn.disabled = false;
+                        acceptBtn.innerHTML = '<i class="fas fa-check"></i> Accept Suggestion';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while accepting the suggestion. Please try again.');
+
+                // Reset button state
+                if (acceptBtn) {
+                    acceptBtn.disabled = false;
+                    acceptBtn.innerHTML = '<i class="fas fa-check"></i> Accept Suggestion';
+                }
+            });
+        }
+
+        function removePastAppointments() {
+            if (!confirm('Are you sure you want to remove all past and cancelled appointments? This action cannot be undone.')) {
+                return;
+            }
+
+            fetch('/api/reception/remove_past_appointments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Reload the page to show the updated list
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while trying to remove appointments.');
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

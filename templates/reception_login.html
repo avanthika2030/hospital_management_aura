@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Dental Hospital - Reception Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reception_common.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Additional styles specific to login page */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0f9ff, #bae6fd);
+            display: flex;
+            flex-direction: column;
+            color: var(--dark);
+            position: relative;
+            overflow-x: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Glowing orbs */
+        .orb {
+            position: fixed; /* Changed from absolute to fixed */
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.5;
+            z-index: -1;
+            pointer-events: none; /* Ensures orbs don't interfere with clicks */
+        }
+
+        .orb-1 {
+            top: -100px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            background: rgba(37, 99, 235, 0.3);
+            animation: pulse 8s ease-in-out infinite alternate;
+        }
+
+        .orb-2 {
+            bottom: -150px;
+            right: -150px;
+            width: 500px;
+            height: 500px;
+            background: rgba(37, 99, 235, 0.3);
+            animation: pulse 12s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 0.5;
+            }
+        }
+
+        /* Navigation bar */
+        nav {
+            background-color: var(--white);
+            box-shadow: 0 4px 20px var(--shadow);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            border-bottom: 1px solid rgba(37, 99, 235, 0.1);
+            width: 100%;
+        }
+
+        .nav-center {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-center i {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-right img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-light);
+            box-shadow: 0 0 15px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .nav-right span {
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        /* Login container */
+        .login-container {
+            background: var(--white);
+            box-shadow: 0 15px 30px var(--shadow-md);
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            margin: 80px auto;
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 5; /* Ensure it's above the orbs */
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
+            background: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px var(--shadow);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid var(--primary-light);
+        }
+
+        .logo img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover img {
+            transform: scale(1.1);
+        }
+
+        .app-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .app-subtitle {
+            color: var(--gray);
+            font-size: 1rem;
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+
+        .app-subtitle::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius-md);
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: var(--white);
+            color: var(--dark);
+            height: 48px; /* Fixed height for consistency */
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+            outline: none;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 42px;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 42px;
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px var(--shadow);
+            height: 48px; /* Fixed height for consistency */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--shadow-md);
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px var(--shadow);
+        }
+
+        .login-btn i {
+            margin-right: 8px;
+        }
+
+        .login-btn span {
+            display: inline-block;
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-top: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 12px 15px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: var(--border-radius-sm);
+            border-left: 4px solid var(--danger);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-message i {
+            font-size: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #0f172a, #1e293b);
+            }
+
+            nav {
+                background-color: rgba(30, 41, 59, 0.9);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .login-container {
+                background: rgba(30, 41, 59, 0.9);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            input {
+                background: rgba(30, 41, 59, 0.7);
+                border-color: #334155;
+                color: #f1f5f9;
+            }
+
+            input:focus {
+                background: rgba(30, 41, 59, 0.9);
+            }
+
+            input::placeholder {
+                color: #64748b;
+            }
+
+            .error-message {
+                background: rgba(239, 68, 68, 0.2);
+                color: #fca5a5;
+            }
+
+            .form-label {
+                color: #e2e8f0;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .login-container {
+                width: 95%;
+                padding: 30px;
+                margin: 60px auto;
+            }
+
+            .app-name {
+                font-size: 1.8rem;
+            }
+
+            nav {
+                padding: 12px 20px;
+            }
+
+            .nav-center {
+                font-size: 1.4rem;
+            }
+
+            .nav-right img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .nav-right span {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 25px 20px;
+                margin: 40px auto;
+            }
+
+            .logo {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 20px;
+            }
+
+            .logo img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .app-name {
+                font-size: 1.6rem;
+            }
+
+            .app-subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 25px;
+            }
+
+            input {
+                padding: 10px 15px 10px 40px;
+                font-size: 0.9rem;
+                height: 44px;
+            }
+
+            .input-icon {
+                top: 40px;
+                font-size: 1rem;
+            }
+
+            .password-toggle {
+                top: 40px;
+            }
+
+            .login-btn {
+                padding: 10px;
+                font-size: 0.9rem;
+                height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Glowing orbs for background effect -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <nav>
+        <div class="nav-center">
+            <i class="fas fa-tooth"></i>
+            AURA Dental Hospital
+        </div>
+        <div class="nav-right">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" />
+            <span>AURA</span>
+        </div>
+    </nav>
+
+    <div class="login-container">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="AURA Logo">
+        </div>
+        <h1 class="app-name">Reception Portal</h1>
+        <p class="app-subtitle">Staff Access Only</p>
+
+        <form action="{{ url_for('reception_login') }}" method="POST" id="login-form">
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" name="username" id="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" name="password" id="password" placeholder="Enter your password" required>
+                <button type="button" class="password-toggle" onclick="togglePassword('password')"><i class="fas fa-eye"></i></button>
+            </div>
+            <button class="login-btn" type="submit">
+                <i class="fas fa-sign-in-alt"></i><span>Sign In</span>
+            </button>
+            {% if error %}
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <script>
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = document.querySelector('.password-toggle i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
