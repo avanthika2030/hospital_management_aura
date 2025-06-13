@@ -11,7 +11,8 @@ import json
 import os
 from simplegmail import Gmail
 app = Flask(__name__)
-app.secret_key = 'client_secret.json'
+#Please save the credentials.json file from GCP as client_secret.json for email functioning
+app.secret_key = 'client_secret.json' 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
