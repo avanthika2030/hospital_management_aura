@@ -42,6 +42,8 @@ If you prefer to run the servers individually:
 - `run.py`, `run_reception.py`, `run_admin.py` - Individual runner scripts
 - `run_all.py` - Combined runner script for all portals
 - `database.db` - SQLite database file
+- `client_secret.json` - The credentials file obtained from GCP for your registered gmail account.
+- `gmail_token.json` - The file automatically generated after you grant your application permission to access Google services.
 
 ## Features
 
@@ -63,7 +65,8 @@ If you encounter any issues:
 4. For email issues, confirm your app password is correctly configured
 
 ## Required
-Please make sure to add the client_secret.json file and the adjoining gmail_token.json file with GCP to ensure proper working of the Gmail functionalities.
+Please make sure to obtain the client_secret.json file and the adjoining gmail_token.json file for your company's gmail account with GCP to ensure proper working of the Gmail functionalities.
+
 ## License
 
 This project is proprietary and confidential.
